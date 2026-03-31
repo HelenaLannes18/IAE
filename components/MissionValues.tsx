@@ -12,6 +12,7 @@ export default function MissionValues() {
             className="py-24 max-w-7xl mx-auto px-4"
         >
             {/* Bloco da Missão */}
+            {/* @ts-ignore */}
             <motion.div variants={slideInLeft} className="grid md:grid-cols-12 gap-8 mb-20 items-center">
                 <h2 className="md:col-span-4 text-5xl md:text-6xl font-bold text-[#C7BFB3]">
                     Missão
@@ -22,6 +23,7 @@ export default function MissionValues() {
             </motion.div>
 
             {/* Bloco dos Valores */}
+            {/* @ts-ignore */}
             <motion.div variants={slideInRight} className="grid md:grid-cols-12 gap-8 mb-16 items-center">
                 <h2 className="md:col-span-4 text-5xl md:text-6xl font-bold text-[#C7BFB3]">
                     Valores

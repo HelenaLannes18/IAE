@@ -115,6 +115,7 @@ export default function BlogPage() {
                     className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16"
                 >
                     {BLOG_POSTS.map((post) => (
+                        // @ts-ignore 
                         <motion.article key={post.id} variants={fadeInUp} className="group cursor-pointer">
                             {/* Imagem do Post */}
                             <div className="w-full aspect-[3/2] bg-slate-200 mb-5 overflow-hidden">

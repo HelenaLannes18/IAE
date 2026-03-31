@@ -1,7 +1,14 @@
 // lib/animations.ts
-export const fadeInUp = {
-  hidden: { opacity: 0, y: 50 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } }
+import { Variants } from 'framer-motion';
+
+// Adicione ": Variants" logo após o nome da constante
+export const fadeInUp: Variants = {
+    hidden: { opacity: 0, y: 40 },
+    visible: { 
+        opacity: 1, 
+        y: 0, 
+        transition: { duration: 0.8, ease: "easeOut" } // Agora o TS sabe que isso é válido
+    }
 };
 
 export const slideInLeft = {

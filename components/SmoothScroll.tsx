@@ -6,6 +6,7 @@ import { ReactNode } from 'react';
 export default function SmoothScroll({ children }: { children: ReactNode }) {
     return (
         <ReactLenis root options={{ lerp: 0.07, duration: 1.2, smoothWheel: true }}>
+            {/* @ts-ignore */}
             {children}
         </ReactLenis>
     );

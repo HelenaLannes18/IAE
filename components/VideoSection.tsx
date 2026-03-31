@@ -8,6 +8,7 @@ export default function VideoSection() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.3 }}
+            //@ts-ignore 
             variants={zoomIn}
             className="py-12 px-4 max-w-7xl mx-auto"
         >

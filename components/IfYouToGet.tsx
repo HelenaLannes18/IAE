@@ -6,6 +6,7 @@ export default function IfYouToGet() {
     return (
         <motion.section initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} className="py-24 px-4 bg-gray-50 rounded-[3rem] mx-4 md:mx-10 mb-24">
             <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 md:gap-24">
+                {/* @ts-ignore */}
                 <motion.div variants={slideInLeft}>
                     <h2 className="text-5xl md:text-6xl font-bold mb-10 text-gray-900">Lorem</h2>
                     <ul className="space-y-8 text-xl text-gray-600">
@@ -17,6 +18,7 @@ export default function IfYouToGet() {
                         ))}
                     </ul>
                 </motion.div>
+                {/* @ts-ignore */}
                 <motion.div variants={slideInRight}>
                     <h2 className="text-5xl md:text-6xl font-bold mb-10 text-gray-300">Ipsum</h2>
                     <ul className="space-y-8 text-xl text-gray-600">

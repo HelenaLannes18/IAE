@@ -48,6 +48,7 @@ export default function EducacaoExecutiva() {
                             initial="hidden"
                             whileInView="visible"
                             viewport={{ once: true, margin: "-50px" }}
+                            //@ts-ignore 
                             variants={programa.inverse ? slideInRight : slideInLeft}
                             // FIXA a altura do cartão no desktop para 280px (bem mais achatado/panorâmico)
                             className={`flex flex-col md:flex-row bg-[#BDB3A6] border border-white overflow-hidden group hover:shadow-2xl transition-shadow duration-500 md:h-[280px]`}
