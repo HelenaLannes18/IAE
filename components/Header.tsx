@@ -15,10 +15,10 @@ export default function Header() {
                     {/* --- LOGO IAE --- */}
                     <div className="flex items-center cursor-pointer">
                         <img
-                            src="/logo_2.jpeg"
+                            src="/logo.png"
                             alt="Logo IAE"
                             // h-16 a h-20 é o tamanho ideal para caber no menu sem estourar a barra
-                            className="h-16 md:h-20 w-auto object-contain py-2"
+                            className="h-16 md:h-20 w-auto object-contain py-2 mix-blend-multiply"
                         />
                     </div>
 
