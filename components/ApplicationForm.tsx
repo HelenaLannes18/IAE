@@ -19,12 +19,12 @@ export default function ApplicationForm() {
                     <h2 className="text-5xl md:text-7xl font-regular mb-6 leading-tight text-white">
                         Fale <br />
                         {/* Connosco agora 100% branco e em negrito */}
-                        <span className="text-white font-bold">Connosco</span>
+                        <span className="text-white font-bold">Conosco</span>
                     </h2>
 
                     {/* Parágrafo 100% branco */}
                     <p className="text-xl text-white mb-8 leading-relaxed max-w-sm">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                        Entre em contato para conhecer os programas do IAE, esclarecer dúvidas e entender como nossa formação executiva pode contribuir para sua trajetória profissional.
                     </p>
 
                     {/* Linha decorativa branca com um pouco de transparência */}
@@ -63,7 +63,7 @@ export default function ApplicationForm() {
                             <div className="col-span-2">
                                 <input
                                     type="text"
-                                    placeholder="Curso de interesse"
+                                    placeholder="Programa de interesse"
                                     className="w-full bg-white border border-[#C7BFB3]/50 rounded-xl px-5 py-4 outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors text-[#3A3733] placeholder:text-[#9A9186]"
                                 />
                             </div>
@@ -77,7 +77,7 @@ export default function ApplicationForm() {
                             type="submit"
                             className="w-full bg-black hover:bg-gray-800 text-white font-bold py-4 rounded-xl mt-4 shadow-lg shadow-black/20 transition-all tracking-wider uppercase text-sm"
                         >
-                            Enviar
+                            Tenho interesse
                         </motion.button>
 
                     </form>

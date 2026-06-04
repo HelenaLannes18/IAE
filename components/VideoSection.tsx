@@ -23,7 +23,7 @@ export default function VideoSection() {
                 <div className="absolute top-0 left-0 w-full h-full flex flex-col justify-center p-10 md:p-20 z-20">
                     {/* Texto Lorem Ipsum em Off-White */}
                     <h2 className="text-[#F3F1EC] text-4xl md:text-7xl font-bold max-w-2xl mb-8 leading-tight drop-shadow-lg">
-                        Lorem ipsum dolor sit amet
+                        IAE, sua residência jurídica. Onde a teoria encontra a prática.
                     </h2>
 
                     {/* Botão Play: Fundo Off-White, hover Greige e ícone Azul Profundo */}

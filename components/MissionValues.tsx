@@ -18,7 +18,7 @@ export default function MissionValues() {
                     Missão
                 </h2>
                 <p className="md:col-span-8 text-3xl md:text-4xl font-bold leading-tight text-[#16243A]">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna.
+                    Formar profissionais preparados para atuar nos desafios reais das organizações, conectando técnica jurídica, visão de negócios e capacidade de tomada de decisão no ambiente empresarial.
                 </p>
             </motion.div>
 
@@ -29,7 +29,7 @@ export default function MissionValues() {
                     Valores
                 </h2>
                 <p className="md:col-span-8 text-xl md:text-2xl text-[#3A3733] leading-relaxed border-l-4 border-[#16243A] pl-6">
-                    Lorem ipsum dolor sit amet, <span className="text-[#16243A] font-bold">consectetur adipiscing elit</span>, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.
+                    O IAE acredita em uma formação jurídica conectada à prática, à excelência técnica e à realidade das empresas. Valorizamos ética, pensamento estratégico, protagonismo profissional e a construção de soluções aplicáveis aos desafios contemporâneos do mercado.
                 </p>
             </motion.div>
         </motion.section>

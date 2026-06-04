@@ -8,14 +8,14 @@ const PROGRAMAS = [
     {
         id: "01",
         title: "Direito Regulatório",
-        desc: "Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat. Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim.",
+        desc: "Compreenda a lógica regulatória aplicada aos setores estratégicos da economia e desenvolva visão prática sobre governança, risco e atuação institucional.",
         image: "https://images.unsplash.com/photo-1573164713988-8665fc963095?q=80&w=800",
         inverse: false
     },
     {
         id: "02",
         title: "Gestão do Departamento Jurídico",
-        desc: "Ut in risus volutpat libero pharetra tempor. Cras vestibulum bibendum augue. Praesent egestas leo in pede. Praesent blandit odio eu enim.",
+        desc: "Desenvolva visão estratégica sobre gestão jurídica corporativa, liderança, eficiência operacional, uso de tecnologia e inteligência artificial, governança e atuação do jurídico como agente de decisão dentro das organizações.",
         image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=800",
         inverse: true
     }
@@ -33,10 +33,11 @@ export default function EducacaoExecutiva() {
                     className="text-center mb-16 max-w-3xl mx-auto"
                 >
                     <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-4">
-                        Educação Executiva
+                        Programas Executivos
                     </motion.h2>
                     <motion.p variants={fadeInUp} className="text-sm md:text-base text-gray-300 leading-relaxed font-medium">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.
+                        Programas desenvolvidos para profissionais que atuam em ambientes corporativos, regulados e estratégicos.
+
                     </motion.p>
                 </motion.div>
 
@@ -81,7 +82,7 @@ export default function EducacaoExecutiva() {
                                     // Botão com padding menor para ficar mais delicado
                                     className="border border-[#3A3833] text-[#3A3833] hover:bg-[#3A3833] hover:text-[#BDB3A6] px-6 py-2 text-sm font-semibold transition-colors duration-300"
                                 >
-                                    Saiba Mais
+                                    Conhecer Programa
                                 </motion.button>
                             </div>
                         </motion.div>

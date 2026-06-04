@@ -1,0 +1,38 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Usaremos SQLite para facilitar o desenvolvimento local
+// Usaremos SQLite para facilitar o desenvolvimento local
+datasource db {
+  provider = "sqlite"
+}
+
+// Tabela de Usuários
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  role      String   @default("Autor") // Administrador, Autor, Editor
+  status    String   @default("Ativo") // Ativo, Inativo
+  createdAt DateTime @default(now())
+  posts     Post[] // Relação: um usuário pode ter vários posts
+}
+
+// Tabela de Artigos do Blog
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String?
+  category  String
+  status    String   @default("Rascunho") // Publicado, Rascunho
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relação com o autor
+  authorId Int
+  author   User @relation(fields: [authorId], references: [id])
+}

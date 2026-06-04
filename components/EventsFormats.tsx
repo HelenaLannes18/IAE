@@ -15,14 +15,14 @@ export default function EventsFormats() {
                 variants={fadeInUp}
                 className="text-5xl md:text-7xl font-extrabold text-[#16243A] max-w-5xl mx-auto leading-tight tracking-tight mb-8"
             >
-                <span className="text-[#9A9186]">Lorem</span> ipsum dolor sit amet <span className="text-[#9A9186]">consectetur</span> adipiscing elit
+                <span className="text-[#9A9186]">Formação jurídica de excelência para os principais</span> tomadores de decisão do mercado.
             </motion.h2>
 
             <motion.p
                 variants={fadeInUp}
                 className="text-2xl text-[#3A3733]/80 mb-12 max-w-2xl mx-auto leading-relaxed"
             >
-                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur, excepteur sint occaecat.
+                Programas executivos desenvolvidos para profissionais que atuam em Direito Regulatório, Tributário, Trabalhista, gestão jurídica corporativa e outros temas estratégicos no ambiente empresarial.
             </motion.p>
 
             {/* @ts-ignore */}
