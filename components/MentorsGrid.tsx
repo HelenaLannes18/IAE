@@ -38,6 +38,7 @@ const CORPO_DOCENTE = [
 
 // --- SUBCONPONENTE DA CARTA ---
 // Criamos um componente isolado para que cada carta controle seu próprio clique
+// @ts-ignore
 function MentorCard({ prof }) {
     const [isFlipped, setIsFlipped] = useState(false);
 
