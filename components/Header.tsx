@@ -24,10 +24,10 @@ export default function Header() {
 
                     {/* --- MENU DE NAVEGAÇÃO --- */}
                     <nav className="hidden md:flex space-x-8">
-                        {['Home', 'Quem Somos', 'Programas Executivos', 'Noticias', 'Contato'].map((item) => (
+                        {['Home', 'Sobre', 'Programas Executivos', 'Noticias', 'Contato'].map((item) => (
                             <a
                                 key={item}
-                                href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
+                                href={`${item.toLowerCase().replace(/\s+/g, '-')}`}
                                 className="text-gray-600 hover:text-amber-600 font-medium transition-colors relative group"
                             >
                                 {item}
