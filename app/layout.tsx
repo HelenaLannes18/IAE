@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next"
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -26,6 +27,7 @@ export default function RootLayout({
       {/* Aplicando a classe da fonte Inter no body */}
       <body className={`${inter.className} min-h-full flex flex-col bg-[#f5f4f0] text-slate-900`}>
         {children}
+        <Analytics />
       </body>
     </html>
   );

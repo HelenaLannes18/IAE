@@ -1,7 +1,16 @@
 "use client";
 import { motion } from 'framer-motion';
+import Link from 'next/link'; // Importação obrigatória no Next.js
 
 export default function Header() {
+    const navItems = [
+        { label: 'Home', href: '/' },
+        { label: 'Sobre', href: '/sobre' },
+        { label: 'Programas Executivos', href: '/#programas-executivos' },
+        { label: 'Noticias', href: '/#noticias' },
+        { label: 'Contato', href: '/#contato' }
+    ];
+
     return (
         <motion.header
             initial={{ y: -100 }}
@@ -14,31 +23,33 @@ export default function Header() {
 
                     {/* --- LOGO IAE --- */}
                     <div className="flex items-center cursor-pointer">
-                        <img
-                            src="/logo.png"
-                            alt="Logo IAE"
-                            // h-16 a h-20 é o tamanho ideal para caber no menu sem estourar a barra
-                            className="h-16 md:h-20 w-auto object-contain py-2 mix-blend-multiply"
-                        />
+                        {/* Trocado <a> por <Link> */}
+                        <Link href="/">
+                            <img
+                                src="/logo.png"
+                                alt="Logo IAE"
+                                className="h-16 md:h-20 w-auto object-contain py-2 mix-blend-multiply"
+                            />
+                        </Link>
                     </div>
 
                     {/* --- MENU DE NAVEGAÇÃO --- */}
                     <nav className="hidden md:flex space-x-8">
-                        {['Home', 'Sobre', 'Programas Executivos', 'Noticias', 'Contato'].map((item) => (
-                            <a
-                                key={item}
-                                href={`${item.toLowerCase().replace(/\s+/g, '-')}`}
+                        {navItems.map((item) => (
+                            < Link
+                                key={item.label}
+                                href={item.href}
                                 className="text-gray-600 hover:text-amber-600 font-medium transition-colors relative group"
                             >
-                                {item}
+                                {item.label}
                                 {/* Linha dourada que cresce ao passar o mouse */}
-                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-600 transition-all group-hover:w-full"></span>
-                            </a>
+                                < span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-600 transition-all group-hover:w-full" ></span>
+                            </Link>
                         ))}
                     </nav>
 
                 </div>
-            </div>
-        </motion.header>
+            </div >
+        </motion.header >
     );
 }
