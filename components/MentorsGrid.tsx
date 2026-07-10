@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { staggerContainer, fadeInUp } from '@/lib/animations';
 
@@ -35,6 +36,60 @@ const CORPO_DOCENTE = [
     }
 ];
 
+// --- SUBCONPONENTE DA CARTA ---
+// Criamos um componente isolado para que cada carta controle seu próprio clique
+function MentorCard({ prof }) {
+    const [isFlipped, setIsFlipped] = useState(false);
+
+    return (
+        <motion.div
+            variants={fadeInUp}
+            className="group relative aspect-[3/4] cursor-pointer [perspective:1000px]"
+            // Toca na tela (mobile) ou clica no desktop para fixar a carta virada
+            onClick={() => setIsFlipped(!isFlipped)}
+        >
+            {/* 
+              O QUE MUDOU AQUI:
+              Adicionamos lógica condicional na classe:
+              - Se isFlipped for true, ele aplica a rotação fixa (resolve o mobile/toque).
+              - Mudamos group-hover para md:group-hover (só funciona hover automático em telas grandes).
+            */}
+            <div
+                className={`relative h-full w-full transition-transform duration-700 [transform-style:preserve-3d] shadow-lg hover:shadow-xl rounded-3xl ${isFlipped ? '[transform:rotateY(180deg)]' : 'md:group-hover:[transform:rotateY(180deg)]'}`}
+            >
+                {/* --- FRENTE DO CARD --- */}
+                <div className="absolute inset-0 h-full w-full rounded-3xl overflow-hidden [backface-visibility:hidden]">
+                    {/* Tag do Professor */}
+                    <div className="absolute top-4 left-4 bg-[#C7BFB3] text-[#16243A] text-xs font-bold px-4 py-1.5 rounded-full z-10 shadow-md">
+                        IAE
+                    </div>
+
+                    <img
+                        src={prof.image}
+                        alt={prof.name}
+                        className="w-full h-full object-cover"
+                    />
+
+                    <div className="absolute bottom-0 w-full p-6 bg-gradient-to-t from-[#16243A] via-[#16243A]/70 to-transparent">
+                        <h3 className="text-[#F3F1EC] font-bold text-2xl">{prof.name}</h3>
+                        <p className="text-[#C7BFB3] text-sm mt-1 font-semibold">{prof.role}</p>
+                    </div>
+                </div>
+
+                {/* --- PARTE DE TRÁS DO CARD --- */}
+                <div className="absolute inset-0 h-full w-full rounded-3xl bg-[#16243A] px-6 py-8 text-center text-[#F3F1EC] [transform:rotateY(180deg)] [backface-visibility:hidden] flex flex-col justify-center items-center border border-[#C7BFB3]/30">
+                    <h3 className="text-[#F3F1EC] font-bold text-2xl mb-2">{prof.name}</h3>
+                    <div className="w-12 h-1 bg-[#C7BFB3] rounded-full mb-6"></div>
+                    <p className="text-sm md:text-base leading-relaxed text-[#F3F1EC]/90">
+                        {prof.bio}
+                    </p>
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
+// --- COMPONENTE PRINCIPAL ---
 export default function MentorsGrid() {
     return (
         <motion.section
@@ -44,7 +99,6 @@ export default function MentorsGrid() {
             variants={staggerContainer}
             className="max-w-7xl mx-auto px-4 mb-32"
         >
-            {/* Título Centralizado */}
             <motion.div variants={fadeInUp} className="text-center mb-16">
                 <h2 className="text-4xl md:text-5xl font-extrabold text-[#16243A] tracking-tight">
                     Corpo Docente
@@ -56,49 +110,8 @@ export default function MentorsGrid() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {CORPO_DOCENTE.map((prof) => (
-                    // O [perspective:1000px] é fundamental para dar a ilusão de 3D ao virar a carta
-                    <motion.div
-                        key={prof.id}
-                        variants={fadeInUp}
-                        className="group relative aspect-[3/4] cursor-pointer [perspective:1000px]"
-                    >
-                        {/* Inner Container: Ele que faz o giro ao sofrer o hover da div "group" pai */}
-                        <div className="relative h-full w-full transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)] shadow-lg hover:shadow-xl rounded-3xl">
-
-                            {/* --- FRENTE DO CARD --- */}
-                            <div className="absolute inset-0 h-full w-full rounded-3xl overflow-hidden [backface-visibility:hidden]">
-                                {/* Tag do Professor: Fundo Greige, texto Azul Profundo */}
-                                <div className="absolute top-4 left-4 bg-[#C7BFB3] text-[#16243A] text-xs font-bold px-4 py-1.5 rounded-full z-10 shadow-md">
-                                    IAE
-                                </div>
-
-                                {/* Imagem */}
-                                <img
-                                    src={prof.image}
-                                    alt={prof.name}
-                                    className="w-full h-full object-cover"
-                                />
-
-                                {/* Gradiente Escuro Embaixo usando o Azul Profundo para o nome aparecer bem */}
-                                <div className="absolute bottom-0 w-full p-6 bg-gradient-to-t from-[#16243A] via-[#16243A]/70 to-transparent">
-                                    <h3 className="text-[#F3F1EC] font-bold text-2xl">{prof.name}</h3>
-                                    <p className="text-[#C7BFB3] text-sm mt-1 font-semibold">{prof.role}</p>
-                                </div>
-                            </div>
-
-                            {/* --- PARTE DE TRÁS DO CARD --- */}
-                            {/* Fundo Azul Profundo, borda com transparência e textos em Off-White / Greige */}
-                            <div className="absolute inset-0 h-full w-full rounded-3xl bg-[#16243A] px-6 py-8 text-center text-[#F3F1EC] [transform:rotateY(180deg)] [backface-visibility:hidden] flex flex-col justify-center items-center border border-[#C7BFB3]/30">
-                                <h3 className="text-[#F3F1EC] font-bold text-2xl mb-2">{prof.name}</h3>
-                                {/* Linha decorativa Greige */}
-                                <div className="w-12 h-1 bg-[#C7BFB3] rounded-full mb-6"></div>
-                                <p className="text-sm md:text-base leading-relaxed text-[#F3F1EC]/90">
-                                    {prof.bio}
-                                </p>
-                            </div>
-
-                        </div>
-                    </motion.div>
+                    // Agora apenas chamamos o subcomponente criado acima
+                    <MentorCard key={prof.id} prof={prof} />
                 ))}
             </div>
         </motion.section>
