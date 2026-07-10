@@ -17,7 +17,8 @@ export default function MissionValues() {
                 <h2 className="md:col-span-4 text-5xl md:text-6xl font-bold text-[#C7BFB3]">
                     Missão
                 </h2>
-                <p className="md:col-span-8 text-3xl md:text-4xl font-bold leading-tight text-[#16243A]">
+                {/* Fonte alterada para text-xl md:text-2xl e leading-relaxed */}
+                <p className="md:col-span-8 text-xl md:text-2xl leading-relaxed text-[#16243A]">
                     Formar profissionais preparados para atuar nos desafios reais das organizações, conectando técnica jurídica, visão de negócios e capacidade de tomada de decisão no ambiente empresarial.
                 </p>
             </motion.div>

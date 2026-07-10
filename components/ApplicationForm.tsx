@@ -1,10 +1,10 @@
 "use client";
+
 import React from 'react';
 import { motion } from 'framer-motion';
 
 export default function ApplicationForm() {
     return (
-        // Alterado o fundo para preto puro (bg-black) e texto base para branco (text-white)
         <motion.section
             initial={{ opacity: 0, y: 100 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -18,16 +18,13 @@ export default function ApplicationForm() {
                 <div>
                     <h2 className="text-5xl md:text-7xl font-regular mb-6 leading-tight text-white">
                         Fale <br />
-                        {/* Connosco agora 100% branco e em negrito */}
                         <span className="text-white font-bold">Conosco</span>
                     </h2>
 
-                    {/* Parágrafo 100% branco */}
                     <p className="text-xl text-white mb-8 leading-relaxed max-w-sm">
                         Entre em contato para conhecer os programas do IAE, esclarecer dúvidas e entender como nossa formação executiva pode contribuir para sua trajetória profissional.
                     </p>
 
-                    {/* Linha decorativa branca com um pouco de transparência */}
                     <div className="w-20 h-1.5 bg-white rounded-full mt-10 opacity-50"></div>
                 </div>
 
@@ -60,17 +57,29 @@ export default function ApplicationForm() {
                                 />
                             </div>
 
-                            <div className="col-span-2">
-                                <input
-                                    type="text"
-                                    placeholder="Programa de interesse"
-                                    className="w-full bg-white border border-[#C7BFB3]/50 rounded-xl px-5 py-4 outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors text-[#3A3733] placeholder:text-[#9A9186]"
-                                />
+                            {/* --- SELECT DE CURSOS --- */}
+                            <div className="col-span-2 relative">
+                                <select
+                                    // Adicionada a cor solicitada. O estado defaultValue vazio fará o placeholder ficar nesta cor.
+                                    className="w-full bg-white border border-[#C7BFB3]/50 rounded-xl px-5 py-4 outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors text-[#9A9186] appearance-none cursor-pointer"
+                                    defaultValue=""
+                                >
+                                    <option value="" disabled className="text-[#9A9186]">Selecione o programa de interesse</option>
+                                    <option value="direito-regulatorio" className="text-[#3A3733]">Direito Regulatório</option>
+                                    <option value="gestao-juridica" className="text-[#3A3733]">Gestão do Departamento Jurídico</option>
+                                    <option value="compliance" className="text-[#3A3733]">Compliance e Governança</option>
+                                    <option value="inovacao" className="text-[#3A3733]">Inovação e Tecnologia Jurídica</option>
+                                </select>
+                                {/* Pequena seta customizada */}
+                                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-[#9A9186]">
+                                    <svg width="12" height="8" viewBox="0 0 12 8" fill="none" stroke="currentColor">
+                                        <path d="M1 1.5L6 6.5L11 1.5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                </div>
                             </div>
 
                         </div>
 
-                        {/* Botão alterado para preto para harmonizar com o fundo */}
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -79,7 +88,6 @@ export default function ApplicationForm() {
                         >
                             Tenho interesse
                         </motion.button>
-
                     </form>
                 </div>
 

@@ -1,265 +1,169 @@
-'use client';
+"use client";
 
+import React from 'react';
 import { motion } from 'framer-motion';
-import { PieChart, Globe, ArrowUpRight } from 'lucide-react'; // Ícones minimalistas para os valores
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
-export default function QuemSomos() {
-    // Variáveis de animação padrão para manter a consistência do site
-    const fadeUp = {
-        hidden: { opacity: 0, y: 40 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
-    };
+// Variantes de animação
+const fadeInUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+};
 
-    const staggerContainer = {
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
-    };
+// Dados da página "Quem Somos"
+const ABOUT_SECTIONS = [
+    {
+        id: 1,
+        number: "(01)",
+        title: "O Propósito",
+        image: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1600",
+        text: "Nascemos da necessidade de aproximar a teoria jurídica da realidade dinâmica das grandes corporações. Nosso foco é traduzir a complexidade regulatória em estratégias acionáveis que impulsionam os negócios de forma segura e ética."
+    },
+    {
+        id: 2,
+        number: "(02)",
+        title: "A Metodologia",
+        image: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=1600",
+        text: "Nossos programas fogem do tradicionalismo engessado. Utilizamos estudos de caso reais, simulações de comitês executivos e debates orientados a problemas (Problem-Based Learning) para garantir que o aprendizado seja aplicável já no dia seguinte."
+    },
+    {
+        id: 3,
+        number: "(03)",
+        title: "Corpo Docente",
+        image: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1600",
+        text: "Não somos apenas teóricos. Nossos professores são líderes de mercado — diretores jurídicos, sócios de grandes bancas e executivos de compliance — que vivenciam diariamente os desafios que ensinam em sala de aula."
+    },
+    {
+        id: 4,
+        number: "(04)",
+        title: "Visão de Futuro",
+        image: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1600",
+        text: "Acreditamos que o advogado do futuro não é apenas um consultor técnico, mas um parceiro de negócios estratégico. Trabalhamos para formar profissionais capazes de liderar a inovação dentro de seus departamentos e empresas."
+    }
+];
 
+export default function QuemSomosPage() {
     return (
-        // Fundo Off-White da paleta IAE
-        <main className="bg-[#F3F1EC] text-[#16243A] font-sans min-h-screen selection:bg-[#16243A] selection:text-white pt-32 pb-32">
+        <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-gray-300">
+            <Header />
 
-            {/* =========================================
-          HEADER GLOBAL (Você pode extrair isso para um layout.tsx depois para não repetir)
-          ========================================= */}
-            <header className="fixed top-0 left-0 w-full flex justify-between items-center px-6 md:px-12 py-4 z-50 bg-[#F3F1EC]/90 backdrop-blur-md border-b border-[#16243A]/10">
-                <div className="flex items-center gap-2 cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-[#16243A] text-[#F3F1EC] flex items-center justify-center font-bold font-serif text-sm">
-                        IAE
-                    </div>
-                    <span className="font-bold text-xl tracking-tighter">Board</span>
-                </div>
-                <nav className="hidden md:flex gap-8 text-sm font-medium">
-                    {/* @ts-ignore */}
-                    <a href="/" className="hover:opacity-70 transition-opacity">Início</a>
-                    <a href="/quem-somos" className="opacity-50">Quem Somos</a>
-                    <a href="#educacao" className="hover:opacity-70 transition-opacity">Educação Executiva</a>
-                    <a href="#docentes" className="hover:opacity-70 transition-opacity">Corpo Docente</a>
-                </nav>
-                <button className="hidden md:block bg-[#16243A] text-white px-8 py-2.5 rounded-full text-sm font-medium hover:bg-[#3A3733] transition-colors">
-                    Contato
-                </button>
-            </header>
-
-
-            {/* =========================================
-          1. INTRODUÇÃO (Imagem Vertical + Texto Forte)
-          ========================================= */}
-            <section className="px-6 md:px-12 max-w-[1440px] mx-auto mt-12 md:mt-20">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-center">
-
-                    {/* Imagem Esquerda */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 1 }}
-                        className="w-full aspect-[3/4] md:aspect-[4/5] overflow-hidden bg-gray-200 rounded-sm shadow-sm"
-                    >
-                        <img
-                            src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1000&auto=format&fit=crop"
-                            alt="Prédios Corporativos"
-                            className="w-full h-full object-cover"
-                        />
-                    </motion.div>
-
-                    {/* Texto Direita */}
-                    <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, margin: "-100px" }}
-                        className="flex flex-col"
-                    >
-                        {/* @ts-ignore */}
-                        <motion.span variants={fadeUp} className="text-xs uppercase tracking-[0.2em] text-[#9A9186] font-bold mb-6">
-                            Sobre Nós
-                        </motion.span>
-                        {/* @ts-ignore */}
-                        <motion.h1 variants={fadeUp} className="text-3xl md:text-5xl lg:text-6xl font-medium leading-[1.1] tracking-tight mb-8">
-                            Conectando a excelência acadêmica à realidade prática corporativa.
-                        </motion.h1>
-                        {/* @ts-ignore */}
-                        <motion.p variants={fadeUp} className="text-[#3A3733]/80 leading-relaxed text-lg max-w-lg">
-                            O Instituto de Advocacia Empresarial (IAE) nasceu da necessidade de preparar profissionais não apenas para interpretar a lei, mas para serem agentes estratégicos de decisão no coração das empresas.
-                        </motion.p>
-                    </motion.div>
-
-                </div>
-            </section>
-
-
-            {/* =========================================
-          2. NOSSOS VALORES (Grid de Cards Clean)
-          ========================================= */}
-            <section className="px-6 md:px-12 max-w-[1440px] mx-auto mt-32 md:mt-48">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="text-center mb-16"
-                >
-                    <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Nossos Valores</h2>
-                </motion.div>
-
-                <motion.div
-                    variants={staggerContainer}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true }}
-                    className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8"
-                >
-                    {/* Card 1 */}
-                    {/* @ts-ignore */}
-                    <motion.div variants={fadeUp} className="bg-white p-10 md:p-12 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                        <PieChart className="w-6 h-6 text-[#16243A] mb-8" strokeWidth={1.5} />
-                        <h3 className="font-bold text-lg mb-4">Visão Estratégica</h3>
-                        <p className="text-[#3A3733]/70 text-sm leading-relaxed">
-                            Formamos advogados que enxergam além do risco jurídico, atuando como parceiros de negócio e viabilizadores de soluções.
-                        </p>
-                    </motion.div>
-
-                    {/* Card 2 */}
-                    {/* @ts-ignore */}
-                    <motion.div variants={fadeUp} className="bg-white p-10 md:p-12 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                        <Globe className="w-6 h-6 text-[#16243A] mb-8" strokeWidth={1.5} />
-                        <h3 className="font-bold text-lg mb-4">Prática de Mercado</h3>
-                        <p className="text-[#3A3733]/70 text-sm leading-relaxed">
-                            Nosso corpo docente é formado exclusivamente por líderes ativos em posições de destaque no setor corporativo.
-                        </p>
-                    </motion.div>
-
-                    {/* Card 3 */}
-                    {/* @ts-ignore */}
-                    <motion.div variants={fadeUp} className="bg-white p-10 md:p-12 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                        <ArrowUpRight className="w-6 h-6 text-[#16243A] mb-8" strokeWidth={1.5} />
-                        <h3 className="font-bold text-lg mb-4">Crescimento Acelerado</h3>
-                        <p className="text-[#3A3733]/70 text-sm leading-relaxed">
-                            Foco no desenvolvimento de soft skills essenciais, como liderança, negociação e inteligência emocional aplicadas ao direito.
-                        </p>
-                    </motion.div>
-                </motion.div>
-            </section>
-
-
-            {/* =========================================
-          3. NOSSA HISTÓRIA
-          ========================================= */}
-            <section className="px-6 md:px-12 max-w-[1440px] mx-auto mt-32 md:mt-48">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-center">
-
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1 }}
-                        className="w-full aspect-square md:aspect-[4/5] overflow-hidden bg-gray-200 rounded-sm shadow-sm order-2 md:order-1"
-                    >
-                        <img
-                            src="https://images.unsplash.com/photo-1556761175-5973dc0f32d7?q=80&w=1000&auto=format&fit=crop"
-                            alt="Reunião IAE"
-                            className="w-full h-full object-cover"
-                        />
-                    </motion.div>
-
-                    <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, margin: "-100px" }}
-                        className="flex flex-col order-1 md:order-2"
-                    >
-                        {/* @ts-ignore */}
-                        <motion.span variants={fadeUp} className="text-xs uppercase tracking-[0.2em] text-[#9A9186] font-bold mb-6">
-                            Nossa História
-                        </motion.span>
-                        {/* @ts-ignore */}
-                        <motion.h2 variants={fadeUp} className="text-3xl md:text-5xl font-medium leading-[1.1] tracking-tight mb-8 pr-8">
-                            Instituto de Advocacia Empresarial
-                        </motion.h2>
-                        {/* @ts-ignore */}
-                        <motion.p variants={fadeUp} className="text-[#3A3733]/80 leading-relaxed text-base mb-6">
-                            O IAE surge da constatação de uma lacuna crítica na formação jurídica tradicional: o distanciamento entre a academia e a sala de reuniões corporativa.
-                        </motion.p>
-                        {/* @ts-ignore */}
-                        <motion.p variants={fadeUp} className="text-[#3A3733]/80 leading-relaxed text-base">
-                            Nosso objetivo primário é ser a ponte definitiva entre a teoria e a realidade, fornecendo as ferramentas mentais e técnicas necessárias para que o profissional do direito brilhe no ambiente corporativo dinâmico de hoje.
-                        </motion.p>
-                    </motion.div>
-
-                </div>
-            </section>
-
-
-            {/* =========================================
-          4. NOSSO TIME (Lista Editorial Minimalista)
-          ========================================= */}
-            <section className="px-6 md:px-12 max-w-[1440px] mx-auto mt-32 md:mt-48 mb-20">
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="mb-16"
-                >
-                    <h2 className="text-3xl md:text-5xl font-medium tracking-tight">Nosso Time</h2>
-                </motion.div>
-
-                {/* Tabela / Lista */}
-                <motion.div
-                    variants={staggerContainer}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true }}
-                    className="w-full flex flex-col"
-                >
-                    {/* Cabeçalho da Tabela (Opcional, no seu design tem uma versão minúscula em cima) */}
-                    <div className="hidden md:grid grid-cols-12 gap-4 pb-4 border-b border-[#16243A]/10 text-[10px] uppercase tracking-widest text-[#9A9186] font-bold">
-                        <div className="col-span-4">Nome</div>
-                        <div className="col-span-4">Especialidade / Cargo</div>
-                        <div className="col-span-4 text-right">Contato</div>
-                    </div>
-
-                    {/* Linhas da Tabela */}
-                    {[
-                        { nome: "Guga Costa", cargo: "Presidente", email: "g.costa@iae.com.br" },
-                        { nome: "Rodrigo Gadban", cargo: "Coordenador Acadêmico", email: "r.gadban@iae.com.br" },
-                        { nome: "Daniela Vilhena", cargo: "Sócia de Advocacia", email: "d.vilhena@iae.com.br" },
-                        { nome: "José Guilherme", cargo: "Diretor Jurídico", email: "j.guilherme@iae.com.br" },
-                        { nome: "Ana Flávia", cargo: "Head de Compliance", email: "a.flavia@iae.com.br" },
-                        { nome: "Carlos Eduardo", cargo: "Conselheiro Estratégico", email: "c.eduardo@iae.com.br" },
-                        { nome: "Mariana Luz", cargo: "Especialista Tributária", email: "m.luz@iae.com.br" },
-                    ].map((membro, index) => (
-                        <motion.div
-                            key={index}
-                            // @ts-ignore
-                            variants={fadeUp}
-                            className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 py-6 md:py-8 border-b border-[#16243A]/10 items-center group hover:bg-white/50 transition-colors px-2"
+            <main>
+                {/* HERO SECTION */}
+                <section className="bg-[#111111] text-white pt-40 pb-24 md:pt-56 md:pb-32 px-4">
+                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-end gap-10">
+                        <motion.h1
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8 }}
+                            className="text-5xl md:text-7xl lg:text-8xl font-bold leading-[0.9] tracking-tighter max-w-4xl uppercase"
                         >
-                            {/* Coluna Nome */}
-                            <div className="col-span-12 md:col-span-4 font-bold text-base md:text-lg">
-                                {membro.nome}
-                            </div>
+                            Visão geral do <br className="hidden md:block" />
+                            nosso instituto
+                        </motion.h1>
 
-                            {/* Coluna Especialidade */}
-                            <div className="col-span-12 md:col-span-4 text-[#3A3733]/80 text-sm md:text-base">
-                                {membro.cargo}
-                            </div>
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 1, delay: 0.3 }}
+                            className="text-gray-400 text-lg md:text-xl max-w-sm mb-2"
+                        >
+                            Conceitos criados para atingir uma formação executiva que vai além das suas aspirações.
+                        </motion.p>
+                    </div>
+                </section>
 
-                            {/* Coluna Contato */}
-                            <div className="col-span-12 md:col-span-4 md:text-right mt-2 md:mt-0">
-                                <a
-                                    href={`mailto:${membro.email}`}
-                                    className="text-sm border-b border-[#16243A]/20 pb-0.5 hover:text-[#C7BFB3] hover:border-[#C7BFB3] transition-colors"
-                                >
-                                    {membro.email}
-                                </a>
+                {/* SEÇÕES DE CONTEÚDO (O "Efeito de Passada") */}
+                <div className="relative">
+                    {ABOUT_SECTIONS.map((section, index) => (
+                        <section
+                            key={section.id}
+                            // AQUI ESTÁ A MÁGICA: sticky top-0 faz a seção travar, e a próxima passa por cima
+                            // Fundos alternam entre branco e um cinza bem elegante
+                            className={`sticky top-0 w-full min-h-screen flex flex-col justify-center border-t border-slate-200/50 overflow-hidden shadow-[0_-10px_30px_rgba(0,0,0,0.03)] z-${index * 10} ${index % 2 === 0 ? 'bg-white' : 'bg-[#F4F4F4]'
+                                }`}
+                        >
+                            <div className="max-w-7xl mx-auto px-4 w-full py-20 md:py-24">
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
+
+                                    {/* COLUNA ESQUERDA: NÚMERO */}
+                                    <div className="md:col-span-3">
+                                        <span className="text-6xl md:text-8xl font-normal text-slate-800 tracking-tighter block">
+                                            {section.number}
+                                        </span>
+                                    </div>
+
+                                    {/* COLUNA DIREITA: CONTEÚDO */}
+                                    <div className="md:col-span-9">
+                                        <motion.h2
+                                            initial="hidden"
+                                            whileInView="visible"
+                                            viewport={{ once: true, margin: "-50px" }}
+                                            //@ts-ignore
+                                            variants={fadeInUp}
+                                            className="text-4xl md:text-6xl lg:text-7xl font-extrabold uppercase text-slate-900 mb-8 md:mb-12 tracking-tight"
+                                        >
+                                            {section.title}
+                                        </motion.h2>
+
+                                        {/* CONTAINER DA IMAGEM COM EFEITO "WIPE" (Cortina) */}
+                                        <div className="w-full aspect-[4/3] md:aspect-[21/9] bg-gray-200 overflow-hidden mb-10 relative group">
+                                            {/* Cortina que desliza revelando a imagem */}
+                                            <motion.div
+                                                initial={{ width: "100%" }}
+                                                whileInView={{ width: "0%" }}
+                                                viewport={{ once: true, margin: "-100px" }}
+                                                // Curva de animação bem fluida e arquitetônica
+                                                transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
+                                                className="absolute top-0 right-0 bottom-0 bg-slate-900 z-10"
+                                            />
+                                            <img
+                                                src={section.image}
+                                                alt={section.title}
+                                                className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-1000 ease-out"
+                                            />
+                                        </div>
+
+                                        <motion.div
+                                            initial="hidden"
+                                            whileInView="visible"
+                                            viewport={{ once: true, margin: "-50px" }}
+                                            //@ts-ignore
+                                            variants={fadeInUp}
+                                            className="max-w-3xl"
+                                        >
+                                            <p className="text-xl md:text-2xl text-slate-600 leading-relaxed font-light">
+                                                {section.text}
+                                            </p>
+                                        </motion.div>
+                                    </div>
+
+                                </div>
                             </div>
-                        </motion.div>
+                        </section>
                     ))}
-                </motion.div>
+                </div>
 
-            </section>
+                {/* CALL TO ACTION */}
+                {/* Z-50 garante que o rodapé passe por cima da última seção empilhada */}
+                <section className="bg-white py-32 px-4 text-center relative z-50">
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="max-w-4xl mx-auto flex flex-col items-center"
+                    >
+                        <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-8 tracking-tight">
+                            Pronto para evoluir a sua carreira corporativa?
+                        </h2>
+                        <button className="bg-black hover:bg-neutral-800 text-white px-10 py-5 rounded-full font-bold text-sm uppercase tracking-[0.2em] transition-all transform hover:scale-105">
+                            Fale conosco
+                        </button>
+                    </motion.div>
+                </section>
+            </main>
 
-        </main>
+            <Footer />
+        </div>
     );
 }

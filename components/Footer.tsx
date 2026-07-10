@@ -22,7 +22,7 @@ export default function Footer() {
                         <li><a href="#" className="hover:text-white-500 transition-colors">Home</a></li>
                         <li><a href="#" className="hover:text-white-500 transition-colors">Quem Somos</a></li>
                         <li><a href="#" className="hover:text-white-500 transition-colors">Programas Executivos</a></li>
-                        <li><a href="#" className="hover:text-white-500 transition-colors">Blog</a></li>
+                        <li><a href="#" className="hover:text-white-500 transition-colors">Noticias</a></li>
                         <li><a href="#" className="hover:text-white -500 transition-colors">Contato</a></li>
                     </ul>
                 </div>

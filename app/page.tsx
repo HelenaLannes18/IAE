@@ -16,6 +16,9 @@ import QuemSomos from '@/components/QuemSomos';
 import EducacaoExecutiva from '@/components/EducacaoExecutiva';
 import Hero2 from '@/components/Hero2';
 import BlogSection from '@/components/BlogSection';
+import WelcomePopup from '@/components/WelcomePopup';
+import WhatsAppButton from '@/components/WhatsAppButton';
+import AgendaGrid from '@/components/AgendaGrid';
 
 export default function BoardLandingPage() {
   return (
@@ -29,6 +32,7 @@ export default function BoardLandingPage() {
         {/* <MapStats /> */}
         <MissionValues />
         <VideoSection />
+        <AgendaGrid />
         <EventsFormats />
         <IfYouToGet />
         <EducacaoExecutiva />
@@ -37,6 +41,8 @@ export default function BoardLandingPage() {
         {/* <EcosystemBentoGrid /> */}
         <ApplicationForm />
       </main>
+      <WelcomePopup />
+      <WhatsAppButton />
       <Footer />
       <CookieBanner />
     </div>
