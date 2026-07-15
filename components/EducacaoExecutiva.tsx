@@ -60,7 +60,7 @@ export default function EducacaoExecutiva() {
                                 viewport={{ once: true, margin: "-50px" }}
                                 //@ts-ignore 
                                 variants={programa.inverse ? slideInRight : slideInLeft}
-                                className={`flex flex-col md:flex-row bg-[#BDB3A6] rounded-2xl overflow-hidden group hover:shadow-2xl transition-shadow duration-500 md:h-[280px]`}
+                                className={`flex flex-col md:flex-row bg-[#e4e0e0] rounded-2xl overflow-hidden group hover:shadow-2xl transition-shadow duration-500 md:h-[280px]`}
                             >
                                 {/* --- CAIXA DA IMAGEM --- */}
                                 <div className={`w-full md:w-1/2 h-56 md:h-full overflow-hidden ${programa.inverse ? 'md:order-2' : 'md:order-1'}`}>

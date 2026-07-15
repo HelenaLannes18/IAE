@@ -28,6 +28,7 @@ export default function EventsFormats() {
 
             {/* @ts-ignore */}
             <Link href="/#programas-executivos">
+                {/* @ts-ignore */}
                 <motion.div variants={zoomIn}>
                     <button
                         className="border-2 border-[#16243A] text-[#16243A] hover:bg-[#16243A] hover:text-[#F3F1EC] px-10 py-4 rounded-full font-bold text-sm uppercase tracking-widest transition-all shadow-lg shadow-[#16243A]/10"

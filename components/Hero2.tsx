@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { staggerContainer, fadeInUp } from '@/lib/animations';
-import { Link, Link } from 'lucide-react';
+import { Link } from 'lucide-react';
 
 // Array de Mídias Atualizado
 const BACKGROUND_MEDIA = [

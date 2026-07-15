@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import RichTextEditor from './RichTextEditor';
+import RichTextEditor from '@/components/Richtexteditor';
 
 export default function AdminBlogArea() {
     const router = useRouter();

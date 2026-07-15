@@ -115,7 +115,7 @@ export default function MentorsGrid() {
         >
             <motion.div variants={fadeInUp} className="text-center mb-12">
                 <h2 className="text-4xl md:text-5xl font-extrabold text-[#16243A] tracking-tight">
-                    Corpo Docente
+                    Aprenda com os líderes do mercado
                 </h2>
                 <p className="mt-3 text-lg md:text-xl text-[#9A9186] max-w-2xl mx-auto">
                     Aprenda com líderes de mercado e profissionais de destaque.
