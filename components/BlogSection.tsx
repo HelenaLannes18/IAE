@@ -28,12 +28,11 @@ export default function BlogSection() {
 
                 const data = await res.json();
 
-                // Pega apenas os 3 primeiros posts. 
-                // DICA: Se quiser exibir apenas os publicados, descomente o trecho abaixo:
-                // const publicados = data.filter((p: Post) => p.status === 'Publicado');
-                // setPosts(publicados.slice(0, 3));
+                // Filtra para pegar SOMENTE os artigos com status "Publicado"
+                const publicados = data.filter((p: Post) => p.status === 'Publicado');
 
-                setPosts(data.slice(0, 3));
+                // Salva apenas os 3 primeiros posts publicados no estado
+                setPosts(publicados.slice(0, 3));
             } catch (error) {
                 console.error("Erro ao carregar os artigos:", error);
             } finally {
@@ -108,8 +107,8 @@ export default function BlogSection() {
                         ))}
                     </div>
                 ) : posts.length === 0 ? (
-                    // Mensagem caso não haja nenhum artigo no banco
-                    <div className="text-center text-[#9A9186] py-10 font-medium">
+                    // Mensagem caso não haja nenhum artigo no banco com status 'Publicado'
+                    <div className="text-center text-[#9A9186] py-10 font-medium col-span-3">
                         Nenhum artigo publicado no momento.
                     </div>
                 ) : (

@@ -17,50 +17,48 @@ const fadeUp = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
 };
 
-// Dados da Agenda (Com imagens novas e dados adicionais para o hover)
-const AGENDA_ITEMS = [
-    {
-        id: 1,
-        category: "[ PROGRAMA ESPECIAL ]",
-        title: "Estratégia e Inovação — 2026/2027",
-        // Imagem: Auditório / Painel de discussão escuro
-        image: "https://images.unsplash.com/photo-1540317580384-e5d43867caa6?q=80&w=1600",
-        gridClass: "md:col-span-1 md:row-span-2 min-h-[400px] md:min-h-[600px]",
-        speakers: ["HELENA VILLA-LOBOS", "ROBERTO K. MENDES", "JULIA ALMEIDA"]
-    },
-    {
-        id: 2,
-        category: "[ MENTORIA ]",
-        title: "Liderança Jurídica Avançada — 2026",
-        // Imagem: Arquitetura brutalista / Escadas
-        image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=1600",
-        gridClass: "md:col-span-2 md:row-span-1 min-h-[300px]",
-        speakers: ["PAULO FERNANDES", "MARCOS T. SILVA"]
-    },
-    {
-        id: 3,
-        category: "[ FORMAÇÃO ]",
-        title: "Compliance ESG — Nov/2026",
-        // Imagem: Pessoas conversando em ambiente corporativo moderno
-        image: "https://images.unsplash.com/photo-1551818255-e6e10975bc17?q=80&w=1600",
-        gridClass: "md:col-span-1 md:row-span-1 min-h-[300px]",
-        speakers: ["ANA CLARA VIEIRA"]
-    },
-    {
-        id: 4,
-        category: "[ MASTERCLASS ]",
-        title: "IA Aplicada aos Contratos",
-        // Imagem: Foco em reunião/análise abstrata
-        image: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1600",
-        gridClass: "md:col-span-1 md:row-span-1 min-h-[300px]",
-        speakers: ["DR. CARLOS MAGNO", "EQUIPE DE INOVAÇÃO"]
-    }
-];
+// Interface para tipar os dados que vêm da sua API
+interface AgendaItem {
+    id: number;
+    category: string;
+    title: string;
+    image: string;
+    gridClass: string;
+    speakers: string; // Vem como string da API
+    link: string | null;
+    status: string;
+}
 
 export default function AgendaGrid() {
+    // Estado para os itens da agenda vindos do banco
+    const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
     // Estado para controlar a posição do mouse e se ele está dentro da seção
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [isHoveringSection, setIsHoveringSection] = useState(false);
+
+    // Busca os dados da API
+    useEffect(() => {
+        const fetchAgenda = async () => {
+            try {
+                const res = await fetch('/api/agenda');
+                if (!res.ok) throw new Error('Falha ao buscar agenda');
+
+                const data = await res.json();
+
+                // Filtra para mostrar apenas os itens que estão com status "Ativo"
+                const activeItems = data.filter((item: AgendaItem) => item.status === 'Ativo');
+                setAgendaItems(activeItems);
+            } catch (error) {
+                console.error("Erro ao carregar a agenda:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchAgenda();
+    }, []);
 
     // Lógica para rastrear o mouse na tela
     useEffect(() => {
@@ -73,6 +71,13 @@ export default function AgendaGrid() {
         window.addEventListener('mousemove', updateMousePosition);
         return () => window.removeEventListener('mousemove', updateMousePosition);
     }, [isHoveringSection]);
+
+    // Função utilitária para transformar a string de palestrantes em array
+    // Ex: "João, Maria" -> ["João", "Maria"]
+    const formatSpeakers = (speakersStr: string) => {
+        if (!speakersStr) return [];
+        return speakersStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    };
 
     return (
         <section
@@ -114,55 +119,73 @@ export default function AgendaGrid() {
                 </motion.div>
 
                 {/* Grid Mosaico */}
-                <motion.div
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, margin: "-100px" }}
-                    variants={staggerContainer}
-                    className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 bg-black"
-                >
-                    {AGENDA_ITEMS.map((item) => (
-                        <motion.a
-                            href="#"
-                            key={item.id}
-                            //@ts-ignore    
-                            variants={fadeUp}
-                            className={`relative group overflow-hidden bg-zinc-900 block ${item.gridClass}`}
-                        >
-                            {/* Imagem de Fundo (Grayscale por padrão, colorida no hover) */}
-                            <div
-                                className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out grayscale group-hover:grayscale-0 group-hover:scale-105"
-                                style={{ backgroundImage: `url(${item.image})` }}
-                            />
+                {isLoading ? (
+                    // Esqueleto de carregamento sutil enquanto a API responde
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 h-[600px]">
+                        <div className="md:col-span-1 md:row-span-2 bg-zinc-900 animate-pulse rounded-sm"></div>
+                        <div className="md:col-span-2 md:row-span-1 bg-zinc-900 animate-pulse rounded-sm"></div>
+                        <div className="md:col-span-1 md:row-span-1 bg-zinc-900 animate-pulse rounded-sm"></div>
+                        <div className="md:col-span-1 md:row-span-1 bg-zinc-900 animate-pulse rounded-sm"></div>
+                    </div>
+                ) : agendaItems.length === 0 ? (
+                    <div className="text-center py-20 text-zinc-500 font-bold uppercase tracking-widest">
+                        Nenhum evento agendado no momento.
+                    </div>
+                ) : (
+                    <motion.div
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: "-100px" }}
+                        variants={staggerContainer}
+                        className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 bg-black"
+                    >
+                        {agendaItems.map((item) => (
+                            <motion.a
+                                href={item.link || "#"}
+                                target={item.link ? "_blank" : "_self"}
+                                rel={item.link ? "noopener noreferrer" : ""}
+                                key={item.id}
+                                //@ts-ignore    
+                                variants={fadeUp}
+                                className={`relative group overflow-hidden bg-zinc-900 block ${item.gridClass}`}
+                            >
+                                {/* Imagem de Fundo (Grayscale por padrão, colorida no hover) */}
+                                <div
+                                    className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out grayscale group-hover:grayscale-0 group-hover:scale-105"
+                                    style={{ backgroundImage: `url(${item.image})` }}
+                                />
 
-                            {/* Overlay Escuro */}
-                            <div className="absolute inset-0 bg-black/60 group-hover:bg-black/30 transition-colors duration-700" />
+                                {/* Overlay Escuro */}
+                                <div className="absolute inset-0 bg-black/60 group-hover:bg-black/30 transition-colors duration-700" />
 
-                            {/* Conteúdo Oculto Superior (Palestrantes/Detalhes) - Aparece apenas no hover */}
-                            <div className="absolute top-6 right-6 md:top-8 md:right-8 flex flex-col items-end text-right opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out z-10">
-                                <p className="text-[10px] md:text-xs text-white uppercase tracking-widest font-semibold mb-2">
-                                    Participações
-                                </p>
-                                {item.speakers.map((speaker, idx) => (
-                                    <p key={idx} className="text-white text-xs md:text-sm font-light tracking-wide uppercase">
-                                        {speaker}
-                                    </p>
-                                ))}
-                            </div>
+                                {/* Conteúdo Oculto Superior (Palestrantes/Detalhes) - Aparece apenas no hover */}
+                                {formatSpeakers(item.speakers).length > 0 && (
+                                    <div className="absolute top-6 right-6 md:top-8 md:right-8 flex flex-col items-end text-right opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out z-10">
+                                        <p className="text-[10px] md:text-xs text-white uppercase tracking-widest font-semibold mb-2">
+                                            Participações
+                                        </p>
+                                        {formatSpeakers(item.speakers).map((speaker, idx) => (
+                                            <p key={idx} className="text-white text-xs md:text-sm font-light tracking-wide uppercase">
+                                                {speaker}
+                                            </p>
+                                        ))}
+                                    </div>
+                                )}
 
-                            {/* Conteúdo Inferior Fixo (Categoria e Título) */}
-                            <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end z-10 pointer-events-none">
-                                <span className="text-white font-bold tracking-widest text-[10px] md:text-xs mb-3 opacity-80 uppercase">
-                                    {item.category}
-                                </span>
+                                {/* Conteúdo Inferior Fixo (Categoria e Título) */}
+                                <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end z-10 pointer-events-none">
+                                    <span className="text-white font-bold tracking-widest text-[10px] md:text-xs mb-3 opacity-80 uppercase">
+                                        [ {item.category} ]
+                                    </span>
 
-                                <h3 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-white leading-[1.1] tracking-tight transform transition-transform duration-500 group-hover:translate-x-2">
-                                    {item.title}
-                                </h3>
-                            </div>
-                        </motion.a>
-                    ))}
-                </motion.div>
+                                    <h3 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-white leading-[1.1] tracking-tight transform transition-transform duration-500 group-hover:translate-x-2">
+                                        {item.title}
+                                    </h3>
+                                </div>
+                            </motion.a>
+                        ))}
+                    </motion.div>
+                )}
 
             </div>
         </section>

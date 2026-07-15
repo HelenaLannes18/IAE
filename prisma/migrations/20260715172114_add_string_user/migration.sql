@@ -4,6 +4,7 @@ CREATE TABLE "User" (
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT,
+    "imageUrl" TEXT,
     "role" TEXT NOT NULL DEFAULT 'Autor',
     "status" TEXT NOT NULL DEFAULT 'Ativo',
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -26,11 +27,29 @@ CREATE TABLE "Post" (
 -- CreateTable
 CREATE TABLE "Lead" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "name" TEXT NOT NULL,
+    "name" TEXT,
     "email" TEXT NOT NULL,
     "phone" TEXT,
     "course" TEXT,
+    "subject" TEXT,
+    "message" TEXT,
+    "source" TEXT NOT NULL DEFAULT 'contato',
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "Agenda" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "category" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "image" TEXT NOT NULL,
+    "gridClass" TEXT NOT NULL DEFAULT 'md:col-span-1 md:row-span-1 min-h-[300px]',
+    "speakers" TEXT NOT NULL,
+    "link" TEXT,
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "status" TEXT NOT NULL DEFAULT 'Ativo',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
 );
 
 -- CreateIndex

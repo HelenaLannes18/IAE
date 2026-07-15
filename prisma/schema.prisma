@@ -4,8 +4,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Usaremos SQLite para facilitar o desenvolvimento local
-// Usaremos SQLite para facilitar o desenvolvimento local
 datasource db {
   provider = "sqlite"
 }
@@ -15,7 +13,8 @@ model User {
   id        Int      @id @default(autoincrement())
   name      String
   email     String   @unique
-  password  String? // hash da senha (bcrypt) - nullable pois usuários antigos não têm senha ainda
+  password  String?
+  imageUrl  String?
   role      String   @default("Autor")
   status    String   @default("Ativo")
   createdAt DateTime @default(now())
@@ -48,4 +47,27 @@ model Lead {
   message   String? // mensagem (formulário do popup)
   source    String   @default("contato") // "contato" ou "popup", pra saber de onde veio
   createdAt DateTime @default(now())
+}
+
+model Agenda {
+  id       Int    @id @default(autoincrement())
+  category String // ex: "[ PROGRAMA ESPECIAL ]"
+  title    String // ex: "Estratégia e Inovação — 2026/2027"
+  image    String // URL da imagem de fundo do card
+
+  // Classe Tailwind que controla o tamanho do card no grid mosaico.
+  // Ex: "md:col-span-1 md:row-span-2 min-h-[400px] md:min-h-[600px]"
+  gridClass String @default("md:col-span-1 md:row-span-1 min-h-[300px]")
+
+  // Lista de palestrantes separada por vírgula (SQLite não suporta array nativo).
+  // Ex: "HELENA VILLA-LOBOS, ROBERTO K. MENDES, JULIA ALMEIDA"
+  speakers String
+
+  link String? // URL de destino do card ao clicar (opcional, hoje é sempre "#")
+
+  order  Int    @default(0) // controla a ordem de exibição no grid
+  status String @default("Ativo") // Ativo, Inativo — permite esconder um item sem excluir
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

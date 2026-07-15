@@ -128,12 +128,14 @@ export default function BlogPostPage() {
                     initial="hidden" animate="visible" variants={staggerContainer}
                     className="max-w-4xl mx-auto px-4 text-center mb-12"
                 >
+                    {/* @ts-ignore */}
                     <motion.div variants={fadeInUp} className="flex items-center justify-center gap-3 text-xs text-slate-500 uppercase tracking-widest mb-6 font-semibold">
                         <span>{article.category}</span>
                         <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
                         <span>{calculateReadTime(article.content)} read</span>
                     </motion.div>
 
+                    {/* @ts-ignore */}
                     <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight tracking-tight">
                         {article.title}
                     </motion.h1>
@@ -219,10 +221,12 @@ export default function BlogPostPage() {
                     className="max-w-5xl mx-auto px-4 mt-24 pt-16 border-t border-slate-200/60"
                 >
                     <div className="mb-10 text-left">
+                        {/* @ts-ignore */}
                         <motion.h2 variants={fadeInUp} className="text-3xl font-extrabold text-slate-900 tracking-tight mb-6">
                             Explore mais artigos
                         </motion.h2>
 
+                        {/* @ts-ignore */}
                         <motion.div variants={fadeInUp} className="flex flex-col md:flex-row justify-between items-center gap-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                             <div className="relative w-full md:w-1/2">
                                 <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
