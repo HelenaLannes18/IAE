@@ -8,8 +8,11 @@ const getPrismaClient = () => {
   // 1. Transforma na linguagem que o Prisma entende (o Adapter)
   const adapter = new PrismaLibSql({
     url: process.env.DATABASE_URL || 'file:./dev.db',
+    // Necessário para conectar em um banco remoto (Turso).
+    // Fica undefined em desenvolvimento local com arquivo, sem problema.
+    authToken: process.env.TURSO_AUTH_TOKEN,
   });
-  
+
   // 2. Constrói o cliente passando o Adapter obrigatoriamente
   return new PrismaClient({ adapter });
 };

@@ -40,9 +40,12 @@ model Post {
 
 model Lead {
   id        Int      @id @default(autoincrement())
-  name      String
+  name      String?
   email     String
   phone     String?
-  course    String? // programa de interesse selecionado no formulário
+  course    String? // programa de interesse (formulário principal)
+  subject   String? // assunto (formulário do popup)
+  message   String? // mensagem (formulário do popup)
+  source    String   @default("contato") // "contato" ou "popup", pra saber de onde veio
   createdAt DateTime @default(now())
 }

@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// Método para CRIAR um novo contato/lead vindo do formulário do site
+// Método para CRIAR um novo contato/lead vindo de qualquer formulário do site
+// (formulário principal de contato OU popup de boas-vindas)
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { name, email, phone, course } = body;
+        const { name, email, phone, course, subject, message, source } = body;
 
-        if (!name || !email) {
-            return NextResponse.json({ error: 'Nome e e-mail são obrigatórios.' }, { status: 400 });
+        if (!email) {
+            return NextResponse.json({ error: 'O e-mail é obrigatório.' }, { status: 400 });
         }
 
         // Validação simples de formato de e-mail
@@ -19,10 +20,13 @@ export async function POST(request: Request) {
 
         const newLead = await prisma.lead.create({
             data: {
-                name,
+                name: name || null,
                 email,
                 phone: phone || null,
-                course: course || null
+                course: course || null,
+                subject: subject || null,
+                message: message || null,
+                source: source || 'contato'
             }
         });
 

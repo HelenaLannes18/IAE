@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import RichTextEditor from './RichTextEditor';
 
 export default function AdminBlogArea() {
     const router = useRouter();
@@ -284,6 +285,8 @@ export default function AdminBlogArea() {
             l.name?.toLowerCase().includes(term) ||
             l.email?.toLowerCase().includes(term) ||
             l.phone?.toLowerCase().includes(term) ||
+            l.subject?.toLowerCase().includes(term) ||
+            l.message?.toLowerCase().includes(term) ||
             formatCourse(l.course).toLowerCase().includes(term)
         );
     }, [leads, leadSearch]);
@@ -528,14 +531,11 @@ export default function AdminBlogArea() {
                                                     </div>
                                                     <div>
                                                         <label className="block text-sm font-bold text-[#3A3733] mb-2">Conteúdo</label>
-                                                        <div className="border border-[#C7BFB3] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#16243A]/20 focus-within:border-[#16243A] transition-all bg-white">
-                                                            <div className="flex gap-2 border-b border-[#C7BFB3]/50 p-2 bg-[#F3F1EC]/50">
-                                                                <button type="button" className="p-1.5 hover:bg-[#C7BFB3]/40 rounded text-[#3A3733]"><b className="font-serif">B</b></button>
-                                                                <button type="button" className="p-1.5 hover:bg-[#C7BFB3]/40 rounded text-[#3A3733]"><i className="font-serif">I</i></button>
-                                                                <button type="button" className="p-1.5 hover:bg-[#C7BFB3]/40 rounded text-[#3A3733] underline">U</button>
-                                                            </div>
-                                                            <textarea rows={12} value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} placeholder="Escreva o seu artigo aqui..." className="w-full px-4 py-3 bg-[#F3F1EC]/30 text-[#3A3733] focus:bg-white focus:outline-none resize-none"></textarea>
-                                                        </div>
+                                                        <RichTextEditor
+                                                            content={formData.content}
+                                                            onChange={(html) => setFormData({ ...formData, content: html })}
+                                                            placeholder="Escreva o seu artigo aqui..."
+                                                        />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-6">
@@ -764,14 +764,16 @@ export default function AdminBlogArea() {
                                                     <tr className="bg-[#F3F1EC]/50 border-b border-[#C7BFB3]/50 text-xs uppercase tracking-wider text-[#9A9186] font-semibold">
                                                         <th className="px-6 py-4">Contato</th>
                                                         <th className="px-6 py-4">Telefone</th>
-                                                        <th className="px-6 py-4">Programa de Interesse</th>
+                                                        <th className="px-6 py-4">Assunto / Programa</th>
+                                                        <th className="px-6 py-4">Mensagem</th>
+                                                        <th className="px-6 py-4">Origem</th>
                                                         <th className="px-6 py-4">Recebido em</th>
                                                         <th className="px-6 py-4 text-right">Ações</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-[#C7BFB3]/30">
                                                     {filteredLeads.length === 0 ? (
-                                                        <tr><td colSpan={5} className="px-6 py-8 text-center text-[#9A9186]">
+                                                        <tr><td colSpan={7} className="px-6 py-8 text-center text-[#9A9186]">
                                                             {leadSearch ? 'Nenhum contato corresponde à busca.' : 'Nenhum contato recebido ainda.'}
                                                         </td></tr>
                                                     ) : (
@@ -779,7 +781,7 @@ export default function AdminBlogArea() {
                                                             <tr key={lead.id} className="hover:bg-[#F3F1EC]/60 transition-colors">
                                                                 <td className="px-6 py-4">
                                                                     <div>
-                                                                        <p className="font-semibold text-[#3A3733]">{lead.name}</p>
+                                                                        <p className="font-semibold text-[#3A3733]">{lead.name || 'Não informado'}</p>
                                                                         <a href={`mailto:${lead.email}`} className="text-sm text-[#9A9186] hover:text-[#16243A] transition-colors">{lead.email}</a>
                                                                     </div>
                                                                 </td>
@@ -789,7 +791,21 @@ export default function AdminBlogArea() {
                                                                     ) : '—'}
                                                                 </td>
                                                                 <td className="px-6 py-4 text-sm text-[#3A3733]/80">
-                                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#F3F1EC] border border-[#C7BFB3]/60 text-[#3A3733]">{formatCourse(lead.course)}</span>
+                                                                    {lead.course ? (
+                                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#F3F1EC] border border-[#C7BFB3]/60 text-[#3A3733]">{formatCourse(lead.course)}</span>
+                                                                    ) : lead.subject ? (
+                                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#F3F1EC] border border-[#C7BFB3]/60 text-[#3A3733]">{lead.subject}</span>
+                                                                    ) : '—'}
+                                                                </td>
+                                                                <td className="px-6 py-4 text-sm text-[#3A3733]/80 max-w-xs">
+                                                                    {lead.message ? (
+                                                                        <p className="truncate" title={lead.message}>{lead.message}</p>
+                                                                    ) : '—'}
+                                                                </td>
+                                                                <td className="px-6 py-4 text-sm">
+                                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${lead.source === 'popup' ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700'}`}>
+                                                                        {lead.source === 'popup' ? 'Popup' : 'Formulário'}
+                                                                    </span>
                                                                 </td>
                                                                 <td className="px-6 py-4 text-sm text-[#9A9186]">{formatDate(lead.createdAt)}</td>
                                                                 <td className="px-6 py-4 text-right">

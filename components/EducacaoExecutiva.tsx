@@ -24,6 +24,10 @@ const PROGRAMAS = [
 ];
 
 export default function EducacaoExecutiva() {
+    // Número do WhatsApp de atendimento (Coloque o DDI + DDD + Número)
+    // Exemplo: 55 (Brasil) + 21 (DDD) + 999999999
+    const WHATSAPP_NUMBER = "5521999999999";
+
     return (
         <section id="programas-executivos" className="py-24 md:py-32 bg-[#3A3833] relative overflow-hidden">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -43,46 +47,55 @@ export default function EducacaoExecutiva() {
 
                 {/* Grid de Cards Alternados */}
                 <div className="space-y-8">
-                    {PROGRAMAS.map((programa) => (
-                        <motion.div
-                            key={programa.id}
-                            initial="hidden"
-                            whileInView="visible"
-                            viewport={{ once: true, margin: "-50px" }}
-                            //@ts-ignore 
-                            variants={programa.inverse ? slideInRight : slideInLeft}
-                            // Borda branca removida aqui!
-                            className={`flex flex-col md:flex-row bg-[#BDB3A6] rounded-2xl overflow-hidden group hover:shadow-2xl transition-shadow duration-500 md:h-[280px]`}
-                        >
-                            {/* --- CAIXA DA IMAGEM --- */}
-                            <div className={`w-full md:w-1/2 h-56 md:h-full overflow-hidden ${programa.inverse ? 'md:order-2' : 'md:order-1'}`}>
-                                <img
-                                    src={programa.image}
-                                    alt={programa.title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                                />
-                            </div>
+                    {PROGRAMAS.map((programa) => {
+                        // Cria a mensagem personalizada dinamicamente baseada no título do card
+                        const mensagem = `Olá! Gostaria de conhecer mais sobre os programas executivos, em especial: ${programa.title}.`;
+                        const linkWhatsapp = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensagem)}`;
 
-                            {/* --- CAIXA DE TEXTO --- */}
-                            <div className={`w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-center items-center text-center ${programa.inverse ? 'md:order-1' : 'md:order-2'}`}>
-                                <h3 className="text-xl md:text-2xl font-bold text-[#3A3833] mb-3">
-                                    {programa.title}
-                                </h3>
+                        return (
+                            <motion.div
+                                key={programa.id}
+                                initial="hidden"
+                                whileInView="visible"
+                                viewport={{ once: true, margin: "-50px" }}
+                                //@ts-ignore 
+                                variants={programa.inverse ? slideInRight : slideInLeft}
+                                className={`flex flex-col md:flex-row bg-[#BDB3A6] rounded-2xl overflow-hidden group hover:shadow-2xl transition-shadow duration-500 md:h-[280px]`}
+                            >
+                                {/* --- CAIXA DA IMAGEM --- */}
+                                <div className={`w-full md:w-1/2 h-56 md:h-full overflow-hidden ${programa.inverse ? 'md:order-2' : 'md:order-1'}`}>
+                                    <img
+                                        src={programa.image}
+                                        alt={programa.title}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    />
+                                </div>
 
-                                <p className="text-[#4A4740] text-sm leading-relaxed mb-5 max-w-sm line-clamp-3">
-                                    {programa.desc}
-                                </p>
+                                {/* --- CAIXA DE TEXTO --- */}
+                                <div className={`w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-center items-center text-center ${programa.inverse ? 'md:order-1' : 'md:order-2'}`}>
+                                    <h3 className="text-xl md:text-2xl font-bold text-[#3A3833] mb-3">
+                                        {programa.title}
+                                    </h3>
 
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="border border-[#3A3833] rounded-full text-[#3A3833] hover:bg-[#3A3833] hover:text-[#BDB3A6] px-6 py-2 text-sm font-semibold transition-colors duration-300"
-                                >
-                                    Conhecer Programa
-                                </motion.button>
-                            </div>
-                        </motion.div>
-                    ))}
+                                    <p className="text-[#4A4740] text-sm leading-relaxed mb-5 max-w-sm line-clamp-3">
+                                        {programa.desc}
+                                    </p>
+
+                                    {/* Transformado em tag <a> para navegação correta */}
+                                    <motion.a
+                                        href={linkWhatsapp}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="border border-[#3A3833] rounded-full text-[#3A3833] hover:bg-[#3A3833] hover:text-[#BDB3A6] px-6 py-2 text-sm font-semibold transition-colors duration-300 text-center inline-block"
+                                    >
+                                        Conhecer Programa
+                                    </motion.a>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
                 </div>
 
             </div>

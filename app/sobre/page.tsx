@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MissionValues from '@/components/MissionValues';
+import Link from 'next/link';
 
 // Variantes de animação
 const fadeInUp = {
@@ -169,9 +170,11 @@ export default function QuemSomosPage() {
                         <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-8 tracking-tight">
                             Pronto para evoluir a sua carreira corporativa?
                         </h2>
-                        <button className="bg-black hover:bg-neutral-800 text-white px-10 py-5 rounded-full font-bold text-sm uppercase tracking-[0.2em] transition-all transform hover:scale-105">
-                            Fale conosco
-                        </button>
+                        <Link href="https://wa.me/5521999999999?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20programas%20executivos." target="_blank" rel="noopener noreferrer">
+                            <button className="bg-black hover:bg-neutral-800 text-white px-10 py-5 rounded-full font-bold text-sm uppercase tracking-[0.2em] transition-all transform hover:scale-105">
+                                Fale conosco
+                            </button>
+                        </Link>
                     </motion.div>
                 </section>
             </main>

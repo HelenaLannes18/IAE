@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { staggerContainer, fadeInUp } from '@/lib/animations';
+import { Link, Link } from 'lucide-react';
 
 // Array de Mídias Atualizado
 const BACKGROUND_MEDIA = [
@@ -110,16 +111,17 @@ export default function Hero() {
                         >
                             Programas executivos conduzidos por profissionais com ampla experiência de mercado. Conhecimento jurídico aplicado aos desafios reais das organizações.
                         </motion.p>
-
-                        <motion.div variants={fadeInUp}>
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="bg-white hover:bg-gray-100 text-black px-6 py-3 font-bold text-xs tracking-widest uppercase transition-all shadow-lg"
-                            >
-                                Saiba Mais +
-                            </motion.button>
-                        </motion.div>
+                        <Link href="/sobre">
+                            <motion.div variants={fadeInUp}>
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="bg-white hover:bg-gray-100 text-black px-6 py-3 font-bold text-xs tracking-widest uppercase transition-all shadow-lg"
+                                >
+                                    Saiba Mais +
+                                </motion.button>
+                            </motion.div>
+                        </Link>
                     </div>
                 </div>
             </div>
