@@ -117,9 +117,7 @@ export default function MentorsGrid() {
                 <h2 className="text-4xl md:text-5xl font-extrabold text-[#16243A] tracking-tight">
                     Aprenda com os líderes do mercado
                 </h2>
-                <p className="mt-3 text-lg md:text-xl text-[#9A9186] max-w-2xl mx-auto">
-                    Aprenda com líderes de mercado e profissionais de destaque.
-                </p>
+
             </motion.div>
 
             {/* Grid configurado para 5 colunas na mesma linha no PC (lg:grid-cols-5) e 2 no celular */}
