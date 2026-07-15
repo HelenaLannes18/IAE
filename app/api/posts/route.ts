@@ -31,7 +31,7 @@ export async function POST(request: Request) {
                 content,
                 category,
                 status,
-                imageUrl,
+                imageUrl: imageUrl || null, // Se não houver imagem, define como null
                 authorId: Number(authorId) // Garante que o ID do autor é um número
             },
             include: { author: true }
