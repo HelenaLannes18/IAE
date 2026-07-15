@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import MissionValues from '@/components/MissionValues';
 
 // Variantes de animação
 const fadeInUp = {
@@ -15,28 +16,28 @@ const fadeInUp = {
 const ABOUT_SECTIONS = [
     {
         id: 1,
-        number: "(01)",
-        title: "O Propósito",
+        number: "",
+        title: "Missão", // <-- Título alterado aqui
         image: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1600",
         text: "Nascemos da necessidade de aproximar a teoria jurídica da realidade dinâmica das grandes corporações. Nosso foco é traduzir a complexidade regulatória em estratégias acionáveis que impulsionam os negócios de forma segura e ética."
     },
     {
         id: 2,
-        number: "(02)",
+        number: "",
         title: "A Metodologia",
         image: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=1600",
         text: "Nossos programas fogem do tradicionalismo engessado. Utilizamos estudos de caso reais, simulações de comitês executivos e debates orientados a problemas (Problem-Based Learning) para garantir que o aprendizado seja aplicável já no dia seguinte."
     },
     {
         id: 3,
-        number: "(03)",
+        number: "",
         title: "Corpo Docente",
         image: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1600",
         text: "Não somos apenas teóricos. Nossos professores são líderes de mercado — diretores jurídicos, sócios de grandes bancas e executivos de compliance — que vivenciam diariamente os desafios que ensinam em sala de aula."
     },
     {
         id: 4,
-        number: "(04)",
+        number: "",
         title: "Visão de Futuro",
         image: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1600",
         text: "Acreditamos que o advogado do futuro não é apenas um consultor técnico, mas um parceiro de negócios estratégico. Trabalhamos para formar profissionais capazes de liderar a inovação dentro de seus departamentos e empresas."
@@ -73,47 +74,43 @@ export default function QuemSomosPage() {
                     </div>
                 </section>
 
+                <MissionValues />
+
                 {/* SEÇÕES DE CONTEÚDO (O "Efeito de Passada") */}
                 <div className="relative">
                     {ABOUT_SECTIONS.map((section, index) => (
                         <section
                             key={section.id}
-                            // AQUI ESTÁ A MÁGICA: sticky top-0 faz a seção travar, e a próxima passa por cima
-                            // Fundos alternam entre branco e um cinza bem elegante
-                            className={`sticky top-0 w-full min-h-screen flex flex-col justify-center border-t border-slate-200/50 overflow-hidden shadow-[0_-10px_30px_rgba(0,0,0,0.03)] z-${index * 10} ${index % 2 === 0 ? 'bg-white' : 'bg-[#F4F4F4]'
+                            style={{ zIndex: index * 10 }} // Fixado o z-index para garantir funcionamento em JIT
+                            className={`sticky top-0 w-full min-h-screen flex flex-col justify-center border-t border-slate-200/50 overflow-hidden shadow-[0_-10px_30px_rgba(0,0,0,0.03)] ${index % 2 === 0 ? 'bg-white' : 'bg-[#F4F4F4]'
                                 }`}
                         >
-                            <div className="max-w-7xl mx-auto px-4 w-full py-20 md:py-24">
-                                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
+                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16 md:py-24">
 
-                                    {/* COLUNA ESQUERDA: NÚMERO */}
-                                    <div className="md:col-span-3">
-                                        <span className="text-6xl md:text-8xl font-normal text-slate-800 tracking-tighter block">
-                                            {section.number}
-                                        </span>
-                                    </div>
+                                {/* NOVO LAYOUT: Flexbox (Imagem na Esquerda, Texto na Direita) */}
+                                <div className="flex flex-col lg:flex-row items-start lg:items-center gap-10 lg:gap-16">
 
-                                    {/* COLUNA DIREITA: CONTEÚDO */}
-                                    <div className="md:col-span-9">
+                                    {/* LADO ESQUERDO: Imagem e Título Mobile */}
+                                    <div className="w-full lg:w-5/12 relative group shrink-0">
+
+                                        {/* Título - Aparece APENAS no mobile em cima da imagem */}
                                         <motion.h2
                                             initial="hidden"
                                             whileInView="visible"
                                             viewport={{ once: true, margin: "-50px" }}
                                             //@ts-ignore
                                             variants={fadeInUp}
-                                            className="text-4xl md:text-6xl lg:text-7xl font-extrabold uppercase text-slate-900 mb-8 md:mb-12 tracking-tight"
+                                            className="lg:hidden text-4xl sm:text-5xl font-extrabold uppercase text-slate-900 mb-6 tracking-tight"
                                         >
                                             {section.title}
                                         </motion.h2>
 
-                                        {/* CONTAINER DA IMAGEM COM EFEITO "WIPE" (Cortina) */}
-                                        <div className="w-full aspect-[4/3] md:aspect-[21/9] bg-gray-200 overflow-hidden mb-10 relative group">
-                                            {/* Cortina que desliza revelando a imagem */}
+                                        {/* Container da Imagem Menor e Arredondada */}
+                                        <div className="w-full sm:w-[85%] lg:w-full aspect-[4/3] md:aspect-[16/10] bg-gray-200 overflow-hidden rounded-2xl relative mx-auto lg:mx-0 shadow-lg">
                                             <motion.div
                                                 initial={{ width: "100%" }}
                                                 whileInView={{ width: "0%" }}
                                                 viewport={{ once: true, margin: "-100px" }}
-                                                // Curva de animação bem fluida e arquitetônica
                                                 transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
                                                 className="absolute top-0 right-0 bottom-0 bg-slate-900 z-10"
                                             />
@@ -123,16 +120,33 @@ export default function QuemSomosPage() {
                                                 className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-1000 ease-out"
                                             />
                                         </div>
+                                    </div>
 
+                                    {/* LADO DIREITO: Título Desktop e Texto */}
+                                    <div className="w-full lg:w-7/12 flex flex-col justify-center">
+
+                                        {/* Título - Aparece APENAS no Desktop */}
+                                        <motion.h2
+                                            initial="hidden"
+                                            whileInView="visible"
+                                            viewport={{ once: true, margin: "-50px" }}
+                                            //@ts-ignore
+                                            variants={fadeInUp}
+                                            className="hidden lg:block text-5xl xl:text-6xl font-extrabold uppercase text-slate-900 mb-8 tracking-tight"
+                                        >
+                                            {section.title}
+                                        </motion.h2>
+
+                                        {/* Texto com max-w-xl para evitar linhas extremamente longas */}
                                         <motion.div
                                             initial="hidden"
                                             whileInView="visible"
                                             viewport={{ once: true, margin: "-50px" }}
                                             //@ts-ignore
                                             variants={fadeInUp}
-                                            className="max-w-3xl"
+                                            className="max-w-xl"
                                         >
-                                            <p className="text-xl md:text-2xl text-slate-600 leading-relaxed font-light">
+                                            <p className="text-lg sm:text-xl md:text-2xl text-slate-600 leading-relaxed font-light">
                                                 {section.text}
                                             </p>
                                         </motion.div>
@@ -145,7 +159,6 @@ export default function QuemSomosPage() {
                 </div>
 
                 {/* CALL TO ACTION */}
-                {/* Z-50 garante que o rodapé passe por cima da última seção empilhada */}
                 <section className="bg-white py-32 px-4 text-center relative z-50">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}

@@ -25,7 +25,7 @@ const PROGRAMAS = [
 
 export default function EducacaoExecutiva() {
     return (
-        <section className="py-24 md:py-32 bg-[#3A3833] relative overflow-hidden">
+        <section id="programas-executivos" className="py-24 md:py-32 bg-[#3A3833] relative overflow-hidden">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 {/* Cabeçalho Centrado */}

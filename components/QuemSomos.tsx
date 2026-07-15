@@ -22,7 +22,7 @@ export default function QuemSomos() {
 
     return (
         // Fundo com a cor Off-White Elegante do manual da marca
-        <section className="py-24 md:py-32 bg-[#F3F1EC] relative overflow-hidden" ref={containerRef}>
+        <section id="quem-somos" className="py-24 md:py-32 bg-[#F3F1EC] relative overflow-hidden" ref={containerRef}>
 
             {/* Decoração de fundo sutil usando o Greige Institucional com transparência */}
             <div className="absolute top-0 right-0 w-1/3 h-full bg-[#C7BFB3]/20 pointer-events-none rounded-l-[10rem] -z-10"></div>

@@ -15,10 +15,11 @@ model User {
   id        Int      @id @default(autoincrement())
   name      String
   email     String   @unique
-  role      String   @default("Autor") // Administrador, Autor, Editor
-  status    String   @default("Ativo") // Ativo, Inativo
+  password  String? // hash da senha (bcrypt) - nullable pois usuários antigos não têm senha ainda
+  role      String   @default("Autor")
+  status    String   @default("Ativo")
   createdAt DateTime @default(now())
-  posts     Post[] // Relação: um usuário pode ter vários posts
+  posts     Post[]
 }
 
 // Tabela de Artigos do Blog
@@ -35,4 +36,13 @@ model Post {
   // Relação com o autor
   authorId Int
   author   User @relation(fields: [authorId], references: [id])
+}
+
+model Lead {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  course    String? // programa de interesse selecionado no formulário
+  createdAt DateTime @default(now())
 }

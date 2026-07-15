@@ -32,8 +32,8 @@ export default function VideoSection() {
                 <div className="absolute top-0 left-0 w-full h-full flex flex-col justify-end md:justify-center items-center md:items-start p-6 sm:p-10 md:p-20 z-20 pb-12 md:pb-20 text-center md:text-left">
 
                     {/* O QUE MUDOU: Tamanho da fonte reduzido para text-3xl no celular */}
-                    <h2 className="text-[#F3F1EC] text-3xl sm:text-4xl md:text-7xl font-bold max-w-2xl mb-8 md:mb-10 leading-tight drop-shadow-lg">
-                        IAE, sua residência jurídica. Onde a teoria encontra a prática.
+                    <h2 className="text-[#F3F1EC] text-3xl sm:text-4xl md:text-7xl font-bold max-w-4xl mb-8 md:mb-10 leading-tight drop-shadow-lg">
+                        IAE, escola do advogado in-house. Onde a teoria encontra a prática.
                     </h2>
 
                     {/* O QUE MUDOU: Tamanho do botão e do ícone reduzidos no celular */}

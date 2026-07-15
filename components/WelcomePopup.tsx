@@ -7,12 +7,21 @@ export default function WelcomePopup() {
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsOpen(true);
-            document.body.style.overflow = 'hidden';
-        }, 1500);
+        // Usa localStorage para garantir que a informação sobreviva a trocas de aba e navegação
+        const hasSeenPopup = localStorage.getItem('hasSeenWelcomePopup_IAE');
 
-        return () => clearTimeout(timer);
+        if (!hasSeenPopup) {
+            // Grava IMEDIATAMENTE que o usuário já iniciou a visita. 
+            // Se ele for para a página "Sobre" antes de dar 1.5s, quando voltar o popup não vai abrir.
+            localStorage.setItem('hasSeenWelcomePopup_IAE', 'true');
+
+            const timer = setTimeout(() => {
+                setIsOpen(true);
+                document.body.style.overflow = 'hidden';
+            }, 1500);
+
+            return () => clearTimeout(timer);
+        }
     }, []);
 
     const handleClose = () => {
@@ -30,7 +39,7 @@ export default function WelcomePopup() {
                     transition={{ duration: 0.8, ease: [0.77, 0, 0.175, 1] }}
                     className="fixed inset-0 z-[100] flex flex-col md:flex-row w-full h-screen font-sans"
                 >
-                    {/* LADO ESQUERDO: Ajustado paddings e tamanhos de fonte */}
+                    {/* LADO ESQUERDO */}
                     <div className="hidden md:flex w-full md:w-[45%] bg-[#6B6B6B] relative flex-col justify-between p-8 lg:p-12 overflow-hidden text-black">
 
                         {/* Logo */}
@@ -38,7 +47,7 @@ export default function WelcomePopup() {
                             <span className="text-xl font-bold tracking-tighter">IAE™</span>
                         </div>
 
-                        {/* Menu Lateral (Reduzido para text-sm) */}
+                        {/* Menu Lateral */}
                         <div className="mt-8 z-10">
                             <h3 className="text-[10px] font-bold mb-4 uppercase tracking-widest opacity-80">Acesso Rápido</h3>
                             <ul className="space-y-2 text-sm font-medium">
@@ -51,7 +60,7 @@ export default function WelcomePopup() {
                             </ul>
                         </div>
 
-                        {/* Texto Gigante no Fundo (Reduzido drasticamente) */}
+                        {/* Texto Gigante no Fundo */}
                         <h1 className="text-[6rem] xl:text-[9rem] font-black leading-none absolute -bottom-6 xl:-bottom-8 -left-4 text-black opacity-90 tracking-tighter select-none pointer-events-none">
                             INSTITUTO
                         </h1>
@@ -68,7 +77,7 @@ export default function WelcomePopup() {
                             Fechar
                         </button>
 
-                        {/* Título Principal (Reduzido para max de 5.5rem) */}
+                        {/* Título Principal */}
                         <h1 className="text-5xl md:text-5xl lg:text-[5.5rem] font-black uppercase leading-[0.85] tracking-tighter text-black mt-10 md:mt-0 mb-8 lg:mb-12">
                             Conecte-se <br />
                             Com O IAE
@@ -76,7 +85,7 @@ export default function WelcomePopup() {
 
                         <div className="flex flex-col xl:flex-row gap-8 lg:gap-12 h-full">
 
-                            {/* Coluna de Informações (Esquerda) */}
+                            {/* Coluna de Informações */}
                             <div className="w-full xl:w-5/12 flex flex-col gap-8 text-[10px] uppercase font-semibold tracking-widest text-black">
                                 <div>
                                     <p className="mb-1 opacity-50">Contato</p>
@@ -101,7 +110,7 @@ export default function WelcomePopup() {
                                 </div>
                             </div>
 
-                            {/* Coluna do Formulário (Direita) */}
+                            {/* Coluna do Formulário */}
                             <div className="w-full xl:w-7/12 bg-white p-6 lg:p-8 shadow-2xl h-fit border-t-4 border-black">
                                 <form className="flex flex-col gap-6 text-[10px] uppercase font-bold tracking-widest text-black">
 

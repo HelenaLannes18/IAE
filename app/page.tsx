@@ -30,14 +30,14 @@ export default function BoardLandingPage() {
         <QuemSomos />
         <MentorsGrid />
         {/* <MapStats /> */}
-        <MissionValues />
+        {/* <MissionValues /> */}
         <VideoSection />
-        <AgendaGrid />
         <EventsFormats />
         <IfYouToGet />
         <EducacaoExecutiva />
+        {/* <AgendaGrid /> */}
         <PhotoGallery />
-        <BlogSection />
+        {/* <BlogSection /> */}
         {/* <EcosystemBentoGrid /> */}
         <ApplicationForm />
       </main>

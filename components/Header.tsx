@@ -2,21 +2,52 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation'; // Adicionado para checar a rota atual
 
 export default function Header() {
-    // Estado para controlar a abertura/fechamento do menu mobile
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const pathname = usePathname(); // Pega a URL atual
 
     const navItems = [
         { label: 'Home', href: '/' },
         { label: 'Sobre', href: '/sobre' },
+        { label: 'Quem Somos', href: '/#quem-somos' },
         { label: 'Programas Executivos', href: '/#programas-executivos' },
-        { label: 'Noticias', href: '/#noticias' },
+        // { label: 'Noticias', href: '/#noticias' },
         { label: 'Contato', href: '/#contato' }
     ];
 
-    // Função para fechar o menu mobile ao clicar em um link
-    const handleCloseMenu = () => setIsMobileMenuOpen(false);
+    // Função inteligente para lidar com os cliques e o scroll suave
+    const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+        // 1. Sempre fecha o menu mobile ao clicar
+        setIsMobileMenuOpen(false);
+
+        // 2. Verifica se é um link de âncora (hash)
+        if (href.startsWith('/#')) {
+            const targetId = href.replace('/#', '');
+            const elem = document.getElementById(targetId);
+
+            // 3. Se já estamos na Home, intercepta o clique e faz o scroll manual
+            if (pathname === '/') {
+                if (elem) {
+                    e.preventDefault(); // Impede o pulo brusco padrão do HTML
+
+                    const headerHeight = 80; // Altura do seu header (h-20 = 80px)
+                    const elementPosition = elem.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.scrollY - headerHeight;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+
+                    // Atualiza a URL sem causar um pulo na tela
+                    window.history.pushState(null, '', `/#${targetId}`);
+                }
+            }
+            // Se NÃO estivermos na Home, o Next.js vai carregar a Home naturalmente e pular para a ID.
+        }
+    };
 
     return (
         <motion.header
@@ -30,7 +61,7 @@ export default function Header() {
 
                     {/* --- LOGO IAE --- */}
                     <div className="flex items-center cursor-pointer z-50">
-                        <Link href="/" onClick={handleCloseMenu}>
+                        <Link href="/" onClick={(e) => handleNavClick(e, '/')}>
                             <img
                                 src="/logo.png"
                                 alt="Logo IAE"
@@ -45,6 +76,7 @@ export default function Header() {
                             <Link
                                 key={item.label}
                                 href={item.href}
+                                onClick={(e) => handleNavClick(e, item.href)}
                                 className="text-gray-600 hover:text-amber-600 font-medium transition-colors relative group"
                             >
                                 {item.label}
@@ -60,7 +92,6 @@ export default function Header() {
                             className="text-gray-600 hover:text-amber-600 focus:outline-none p-2"
                             aria-label="Toggle menu"
                         >
-                            {/* Ícone que muda de Hambúrguer (abrir) para X (fechar) */}
                             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 {isMobileMenuOpen ? (
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -88,7 +119,7 @@ export default function Header() {
                                 <Link
                                     key={item.label}
                                     href={item.href}
-                                    onClick={handleCloseMenu} // Fecha o menu ao clicar e ir para a sessão
+                                    onClick={(e) => handleNavClick(e, item.href)}
                                     className="block text-gray-700 hover:text-amber-600 font-medium text-lg border-b border-gray-50 pb-2 transition-colors"
                                 >
                                     {item.label}

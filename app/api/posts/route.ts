@@ -8,7 +8,7 @@ export async function GET() {
             include: { author: true }, // Traz os dados do usuário que criou o artigo
             orderBy: { createdAt: 'desc' }
         });
-        
+
         return NextResponse.json(posts);
     } catch (error) {
         return NextResponse.json({ error: 'Erro ao buscar artigos' }, { status: 500 });
@@ -19,7 +19,11 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { title, content, category, status, authorId } = body;
+        const { title, content, category, status, authorId, imageUrl } = body;
+
+        if (!title || !category) {
+            return NextResponse.json({ error: 'Título e categoria são obrigatórios.' }, { status: 400 });
+        }
 
         const newPost = await prisma.post.create({
             data: {
@@ -27,10 +31,12 @@ export async function POST(request: Request) {
                 content,
                 category,
                 status,
+                imageUrl,
                 authorId: Number(authorId) // Garante que o ID do autor é um número
-            }
+            },
+            include: { author: true }
         });
-        
+
         return NextResponse.json(newPost, { status: 201 });
     } catch (error) {
         console.error(error);
