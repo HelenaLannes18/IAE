@@ -35,9 +35,9 @@ export default function BoardLandingPage() {
         <EventsFormats />
         <IfYouToGet />
         <EducacaoExecutiva />
-        <AgendaGrid />
+        {/* <AgendaGrid /> */}
         <PhotoGallery />
-        <BlogSection />
+        {/* <BlogSection /> */}
         {/* <EcosystemBentoGrid /> */}
         <ApplicationForm />
       </main>
