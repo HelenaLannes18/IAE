@@ -18,7 +18,7 @@ const CORPO_DOCENTE = [
         name: "Rodrigo Gadben",
         role: "Coordenador",
         image: "/rodrigo.jpg",
-        bio: "Coordenador Acadêmico e Professor do IAE, é Mestre e Doutorando em Direito da Regulação pela FGV, além de ser professor da pós-graduação e graduação da FGV Direito Rio de Janeiro. Rodrigo foi procurador de diversos municípios do Estado de Minas Gerais."
+        bio: "Coordenador Acadêmico e Professor do IAE, é Mestre e Doutorando em Direito da Regulação pela FGV, além de ser professor convidado da pós-graduação e graduação da FGV Direito Rio de Janeiro. Rodrigo foi procurador de diversos municípios do Estado de Minas Gerais."
     },
     {
         id: 3,

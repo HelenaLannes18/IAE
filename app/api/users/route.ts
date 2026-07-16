@@ -10,6 +10,7 @@ export async function GET() {
                 id: true,
                 name: true,
                 email: true,
+                imageUrl: true,
                 role: true,
                 status: true,
                 createdAt: true
@@ -28,7 +29,7 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { name, email, role, status, password } = body;
+        const { name, email, role, status, password, imageUrl } = body;
 
         if (!name || !email || !password) {
             return NextResponse.json({ error: 'Nome, e-mail e senha são obrigatórios.' }, { status: 400 });
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
                 name,
                 email,
                 password: hashedPassword,
+                imageUrl: imageUrl || null,
                 role: role || 'Autor',
                 status: status || 'Ativo'
             },
@@ -58,6 +60,7 @@ export async function POST(request: Request) {
                 id: true,
                 name: true,
                 email: true,
+                imageUrl: true,
                 role: true,
                 status: true,
                 createdAt: true

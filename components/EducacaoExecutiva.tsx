@@ -26,7 +26,7 @@ const PROGRAMAS = [
 export default function EducacaoExecutiva() {
     // Número do WhatsApp de atendimento (Coloque o DDI + DDD + Número)
     // Exemplo: 55 (Brasil) + 21 (DDD) + 999999999
-    const WHATSAPP_NUMBER = "5521999999999";
+    const WHATSAPP_NUMBER = "5521951114003";
 
     return (
         <section id="programas-executivos" className="py-24 md:py-32 bg-[#3A3833] relative overflow-hidden">

@@ -170,7 +170,7 @@ export default function BlogPostPage() {
                                 <p className="text-[11px] uppercase tracking-widest text-slate-500 mb-4">Autores</p>
                                 <div className="flex -space-x-3 mb-3">
                                     <img
-                                        src="https://i.pravatar.cc/100?img=47" // Avatar padrão (pode adicionar foto no model de User depois)
+                                        src={article.author?.imageUrl || "https://i.pravatar.cc/100?img=47"} // Avatar padrão (pode adicionar foto no model de User depois)
                                         alt="Autor"
                                         className="w-10 h-10 rounded-full border-2 border-[#f5f4f0] object-cover shadow-sm relative hover:z-10 hover:scale-110 transition-transform cursor-pointer"
                                     />
@@ -203,14 +203,16 @@ export default function BlogPostPage() {
                             Dê o próximo passo na estruturação do seu negócio hoje.
                         </h3>
                         <div className="relative z-10 shrink-0">
-                            <button className="flex items-center gap-4 bg-white hover:bg-gray-100 text-black rounded-full pl-6 pr-2 py-2 transition-all group shadow-xl">
-                                <span className="text-sm font-medium tracking-wide">Conhecer o Curso</span>
-                                <div className="bg-[#e5e7eb] group-hover:bg-[#d1d5db] transition-colors rounded-full p-2.5 flex items-center justify-center">
-                                    <svg className="w-5 h-5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                    </svg>
-                                </div>
-                            </button>
+                            <Link href="/#programas-executivos">
+                                <button className="flex items-center gap-4 bg-white hover:bg-gray-100 text-black rounded-full pl-6 pr-2 py-2 transition-all group shadow-xl">
+                                    <span className="text-sm font-medium tracking-wide">Conhecer o Curso</span>
+                                    <div className="bg-[#e5e7eb] group-hover:bg-[#d1d5db] transition-colors rounded-full p-2.5 flex items-center justify-center">
+                                        <svg className="w-5 h-5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        </svg>
+                                    </div>
+                                </button>
+                            </Link>
                         </div>
                     </div>
                 </motion.div>
