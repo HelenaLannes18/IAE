@@ -1,7 +1,7 @@
 "use client";
 import { motion } from 'framer-motion';
 import { staggerContainer, fadeInUp, zoomIn } from '@/lib/animations';
-import { Link } from 'lucide-react';
+import Link from 'next/link';
 
 export default function EventsFormats() {
     return (
@@ -26,7 +26,7 @@ export default function EventsFormats() {
                 Programas executivos desenvolvidos para profissionais que atuam em Direito Regulatório, Tributário, Trabalhista, gestão jurídica corporativa e outros temas estratégicos no ambiente empresarial.
             </motion.p>
 
-            {/* @ts-ignore */}
+
             <Link href="/#programas-executivos">
                 {/* @ts-ignore */}
                 <motion.div variants={zoomIn}>

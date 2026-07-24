@@ -10,7 +10,7 @@ const PROGRAMAS = [
         title: "Direito Regulatório",
         desc: "Compreenda a lógica regulatória aplicada aos setores estratégicos da economia e desenvolva visão prática sobre governança, risco e atuação institucional.",
         // Imagem nova: Ambiente corporativo elegante e foco estratégico
-        image: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=1600",
+        image: "https://plus.unsplash.com/premium_photo-1726704130632-9c4bcc66410d?q=80&w=925&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         inverse: false
     },
     {
@@ -18,7 +18,7 @@ const PROGRAMAS = [
         title: "Gestão do Departamento Jurídico",
         desc: "Desenvolva visão estratégica sobre gestão jurídica corporativa, liderança, eficiência operacional, uso de tecnologia e inteligência artificial, governança e atuação do jurídico como agente de decisão dentro das organizações.",
         // Imagem nova: Reunião executiva moderna e de alto padrão
-        image: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1600",
+        image: "https://images.unsplash.com/39/lIZrwvbeRuuzqOoWJUEn_Photoaday_CSD%20%281%20of%201%29-5.jpg?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         inverse: true
     }
 ];

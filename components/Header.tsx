@@ -10,6 +10,7 @@ export default function Header() {
 
     const navItems = [
         { label: 'Home', href: '/' },
+        { label: 'Programas', href: '/programas' },
         // { label: 'Sobre', href: '/sobre' },
         { label: 'Quem Somos', href: '/#quem-somos' },
         { label: 'Programas Executivos', href: '/#programas-executivos' },

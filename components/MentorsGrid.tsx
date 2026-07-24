@@ -25,7 +25,7 @@ const CORPO_DOCENTE = [
         name: "Daniela Vilhena",
         role: "Professora",
         image: "/daniela.jpg",
-        bio: "Sócia do escritório de advocacia Castro Barros Advogados. Daniela foi Head of Legal and Compliance na Souza Cruz (BAT Brasil), e Diretora Jurídica, Regulatória e de Compliance na Winity, além de exercer a função de Árbitra no CBMA."
+        bio: "Sócia do Castro Barros Advogados e Conselheira Consultiva da Junior Achievement RJ. Tem sólida trajetória em grandes escritórios de advocacia e como diretora jurídica e de compliance de empresas em setores altamente regulados. No cenário internacional, foi consultora jurídica do Banco Interamericano de Desenvolvimento (BID), em Washington, D.C. Reúne experiência em gestão de riscos, liderança de equipes em transformação e relacionamento com Conselhos de Administração e investidores."
     },
     {
         id: 4,
@@ -51,7 +51,9 @@ const CORPO_DOCENTE = [
 ];
 
 // --- SUBCONPONENTE DA CARTA ---
-// @ts-ignore
+
+// --- SUBCONPONENTE DA CARTA ---
+//@ts-ignore
 function MentorCard({ prof }) {
     const [isFlipped, setIsFlipped] = useState(false);
 
@@ -67,9 +69,9 @@ function MentorCard({ prof }) {
                 {/* --- FRENTE DO CARD --- */}
                 <div className="absolute inset-0 h-full w-full rounded-2xl overflow-hidden [backface-visibility:hidden]">
 
-                    {/* Tag Interativa - Muda de acordo com a tela */}
-                    <div className="absolute top-3 left-3 bg-[#C7BFB3]/90 backdrop-blur-sm text-[#16243A] text-[9px] uppercase tracking-wider font-extrabold px-3 py-1.5 rounded-full z-10 shadow-md">
-                        <span className="lg:hidden">Clique aqui</span>
+                    {/* Tag Interativa - Agora translúcida, na direita e não bloqueia cliques */}
+                    <div className="absolute top-3 right-3 bg-black/30 backdrop-blur-md border border-white/20 text-white/90 text-[8px] md:text-[9px] uppercase tracking-wider font-semibold px-2.5 py-1 rounded-full z-10 shadow-sm pointer-events-none">
+                        <span className="lg:hidden">Toque para ler</span>
                         <span className="hidden lg:inline">Passe o mouse</span>
                     </div>
 
@@ -102,7 +104,6 @@ function MentorCard({ prof }) {
         </motion.div>
     );
 }
-
 // --- COMPONENTE PRINCIPAL ---
 export default function MentorsGrid() {
     return (
