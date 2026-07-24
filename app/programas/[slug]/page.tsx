@@ -152,7 +152,7 @@ export default async function ProgramaPage({ params }: PageProps) {
                     <div className="grid md:grid-cols-12 gap-8">
                         <div className="md:col-span-4 lg:col-span-3">
                             <AnimatedSection as="h2" className="text-xs uppercase tracking-[0.2em] font-medium text-slate-500 sticky top-24">
-                                Description
+                                Descrição
                             </AnimatedSection>
                         </div>
                         <div className="md:col-span-8 lg:col-span-7 flex flex-col gap-8">
