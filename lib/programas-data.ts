@@ -81,7 +81,7 @@ const gestaoDepartamentoJuridico: Programa = {
     slug: "gestao-do-departamento-juridico",
     numero: 1,
     publicavel: true,
-    status: "confirmado",
+    status: "lista-de-espera",
     seo: {
         titleTag: "Curso de Gestão do Departamento Jurídico | IAE Rio de Janeiro",
         metaDescription:
@@ -251,7 +251,7 @@ const direitoRegulatorio: Programa = {
     slug: "direito-regulatorio",
     numero: 2,
     publicavel: true,
-    status: "confirmado",
+    status: "lista-de-espera",
     seo: {
         titleTag: "Curso de Direito Regulatório para Advogados | IAE Rio",
         metaDescription:

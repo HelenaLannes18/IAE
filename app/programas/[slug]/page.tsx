@@ -166,7 +166,7 @@ export default async function ProgramaPage({ params }: PageProps) {
                 </section>
 
                 {/* 4. PARA QUEM É */}
-                <section className="border-t border-black/20 px-4 md:px-10 lg:px-16 py-16 md:py-24">
+                {/* <section className="border-t border-black/20 px-4 md:px-10 lg:px-16 py-16 md:py-24">
                     <div className="grid md:grid-cols-12 gap-8">
                         <div className="md:col-span-4 lg:col-span-3">
                             <AnimatedSection as="h2" className="text-xs uppercase tracking-[0.2em] font-medium text-slate-500">
@@ -189,7 +189,7 @@ export default async function ProgramaPage({ params }: PageProps) {
                             )}
                         </div>
                     </div>
-                </section>
+                </section> */}
 
                 {/* 5. ESTRUTURA DO PROGRAMA (Accordions HTML Nativos) */}
                 <section className="border-t border-black/20 px-4 md:px-10 lg:px-16 py-16 md:py-32">
