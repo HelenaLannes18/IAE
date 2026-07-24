@@ -234,7 +234,7 @@ export default function ProgramasPage() {
                         <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-8 tracking-tight">
                             Não encontrou o programa ideal para o seu momento?
                         </h2>
-                        <Link href="mailto:instituto.adv.empresarial@gmail.com">
+                        <Link href="https://wa.me/5521951114003?text=Olá! Gostaria de saber mais informações sobre o IAE e os proximos programs">
                             <button className="bg-black hover:bg-neutral-800 text-white px-10 py-5 rounded-full font-bold text-sm uppercase tracking-[0.2em] transition-all transform hover:scale-105">
                                 Fale conosco
                             </button>
