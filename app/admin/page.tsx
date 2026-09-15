@@ -61,15 +61,17 @@ export default function AdminBlogArea() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [resPosts, resUsers, resLeads] = await Promise.all([
+            const [resPosts, resUsers, resLeads, resAgenda] = await Promise.all([
                 fetch('/api/posts'),
                 fetch('/api/users'),
-                fetch('/api/leads')
+                fetch('/api/leads'),
+                fetch('/api/agenda')
             ]);
 
             if (resPosts.ok) setPosts(await resPosts.json());
             if (resUsers.ok) setUsers(await resUsers.json());
             if (resLeads.ok) setLeads(await resLeads.json());
+            if (resAgenda.ok) setAgendaItems(await resAgenda.json());
         } catch (error) {
             console.error("Erro ao carregar os dados:", error);
         } finally {
@@ -266,6 +268,92 @@ export default function AdminBlogArea() {
         }
     };
 
+    // ---------- AGENDA (EVENTOS) ----------
+
+    const resetAgendaForm = () => {
+        setAgendaFormData({
+            category: '',
+            title: '',
+            image: '',
+            gridClass: AGENDA_LAYOUT_OPTIONS[2].value,
+            speakers: '',
+            link: '',
+            order: 0,
+            status: 'Ativo'
+        });
+        setEditingAgendaId(null);
+    };
+
+    const handleStartCreateAgenda = () => {
+        resetAgendaForm();
+        setCurrentView('createAgenda');
+    };
+
+    const handleStartEditAgenda = (item: any) => {
+        setAgendaFormData({
+            category: item.category || '',
+            title: item.title || '',
+            image: item.image || '',
+            gridClass: item.gridClass || AGENDA_LAYOUT_OPTIONS[2].value,
+            speakers: item.speakers || '',
+            link: item.link || '',
+            order: typeof item.order === 'number' ? item.order : 0,
+            status: item.status || 'Ativo'
+        });
+        setEditingAgendaId(item.id);
+        setCurrentView('createAgenda');
+    };
+
+    // Cria OU atualiza um evento da agenda, dependendo se estamos editando
+    const handleCreateAgenda = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!agendaFormData.category || !agendaFormData.title || !agendaFormData.image || !agendaFormData.speakers) {
+            return alert("Categoria, título, imagem e palestrantes são obrigatórios!");
+        }
+
+        setIsSubmittingAgenda(true);
+        try {
+            const isEditing = editingAgendaId !== null;
+            const url = isEditing ? `/api/agenda/${editingAgendaId}` : '/api/agenda';
+            const method = isEditing ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(agendaFormData)
+            });
+
+            if (response.ok) {
+                await fetchData();
+                resetAgendaForm();
+                setCurrentView('agenda');
+            } else {
+                const data = await response.json().catch(() => ({}));
+                alert(data.error || "Erro ao salvar evento.");
+            }
+        } catch (error) {
+            console.error("Erro na requisição:", error);
+        } finally {
+            setIsSubmittingAgenda(false);
+        }
+    };
+
+    const handleDeleteAgenda = async (item: any) => {
+        if (!confirm(`Tem certeza que deseja excluir o evento "${item.title}"? Essa ação não pode ser desfeita.`)) return;
+
+        try {
+            const response = await fetch(`/api/agenda/${item.id}`, { method: 'DELETE' });
+            if (response.ok) {
+                setAgendaItems((prev) => prev.filter((a) => a.id !== item.id));
+            } else {
+                const data = await response.json().catch(() => ({}));
+                alert(data.error || "Erro ao excluir evento.");
+            }
+        } catch (error) {
+            console.error("Erro na requisição:", error);
+        }
+    };
+
     // Traduz o value do select do formulário público para um rótulo legível
     const courseLabels: Record<string, string> = {
         'direito-regulatorio': 'Direito Regulatório',
@@ -315,6 +403,16 @@ export default function AdminBlogArea() {
         );
     }, [leads, leadSearch]);
 
+    const filteredAgenda = useMemo(() => {
+        const term = agendaSearch.trim().toLowerCase();
+        if (!term) return agendaItems;
+        return agendaItems.filter((a) =>
+            a.title?.toLowerCase().includes(term) ||
+            a.category?.toLowerCase().includes(term) ||
+            a.speakers?.toLowerCase().includes(term)
+        );
+    }, [agendaItems, agendaSearch]);
+
     const getPageTitle = () => {
         if (currentView === 'dashboard') return 'Visão Geral';
         if (currentView === 'list') return 'Artigos do Blog';
@@ -322,6 +420,8 @@ export default function AdminBlogArea() {
         if (currentView === 'users') return 'Gestão de Usuários';
         if (currentView === 'createUser') return editingUserId ? 'Editar Usuário' : 'Novo Usuário';
         if (currentView === 'leads') return 'Contatos Recebidos';
+        if (currentView === 'agenda') return 'Agenda de Eventos';
+        if (currentView === 'createAgenda') return editingAgendaId ? 'Editar Evento' : 'Novo Evento';
         return '';
     };
 
@@ -358,6 +458,10 @@ export default function AdminBlogArea() {
                         {leads.length > 0 && (
                             <span className="ml-auto bg-[#F3F1EC]/10 text-[#F3F1EC] text-xs font-bold px-2 py-0.5 rounded-full border border-[#F3F1EC]/20">{leads.length}</span>
                         )}
+                    </button>
+                    <button onClick={() => setCurrentView('agenda')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left ${(currentView === 'agenda' || currentView === 'createAgenda') ? 'bg-[#F3F1EC]/10 text-[#F3F1EC] font-semibold border border-[#F3F1EC]/20' : 'text-[#C7BFB3] hover:bg-[#F3F1EC]/5 hover:text-[#F3F1EC]'}`}>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        Agenda
                     </button>
                 </nav>
 
@@ -878,6 +982,207 @@ export default function AdminBlogArea() {
                                                     )}
                                                 </tbody>
                                             </table>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* TELA 6: LISTA DE EVENTOS DA AGENDA */}
+                            {currentView === 'agenda' && (
+                                <motion.div key="agenda" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="max-w-6xl mx-auto">
+                                    <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+                                        <div className="relative w-full sm:w-96">
+                                            <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9186]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                            <input
+                                                type="text"
+                                                value={agendaSearch}
+                                                onChange={(e) => setAgendaSearch(e.target.value)}
+                                                placeholder="Buscar eventos..."
+                                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all shadow-sm"
+                                            />
+                                        </div>
+                                        <button onClick={handleStartCreateAgenda} className="bg-[#16243A] hover:bg-[#16243A]/90 text-[#F3F1EC] px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg shadow-[#16243A]/20 transition-all w-full sm:w-auto justify-center">
+                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                            Criar Novo Evento
+                                        </button>
+                                    </div>
+
+                                    <div className="bg-white border border-[#C7BFB3]/60 rounded-2xl shadow-sm overflow-hidden">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left border-collapse">
+                                                <thead>
+                                                    <tr className="bg-[#F3F1EC]/50 border-b border-[#C7BFB3]/50 text-xs uppercase tracking-wider text-[#9A9186] font-semibold">
+                                                        <th className="px-6 py-4">Evento</th>
+                                                        <th className="px-6 py-4">Categoria</th>
+                                                        <th className="px-6 py-4">Palestrantes</th>
+                                                        <th className="px-6 py-4">Ordem</th>
+                                                        <th className="px-6 py-4">Status</th>
+                                                        <th className="px-6 py-4 text-right">Ações</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-[#C7BFB3]/30">
+                                                    {filteredAgenda.length === 0 ? (
+                                                        <tr><td colSpan={6} className="px-6 py-8 text-center text-[#9A9186]">
+                                                            {agendaSearch ? 'Nenhum evento corresponde à busca.' : 'Nenhum evento encontrado. Crie o seu primeiro!'}
+                                                        </td></tr>
+                                                    ) : (
+                                                        filteredAgenda.map((item) => (
+                                                            <tr key={item.id} className="hover:bg-[#F3F1EC]/60 transition-colors">
+                                                                <td className="px-6 py-4">
+                                                                    <div className="flex items-center gap-3">
+                                                                        {item.image ? (
+                                                                            // eslint-disable-next-line @next/next/no-img-element
+                                                                            <img src={item.image} alt="" className="w-10 h-10 rounded-lg object-cover border border-[#C7BFB3]/60 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
+                                                                        ) : (
+                                                                            <div className="w-10 h-10 rounded-lg bg-[#F3F1EC] border border-[#C7BFB3]/60 shrink-0" />
+                                                                        )}
+                                                                        <p className="font-semibold text-[#3A3733] truncate max-w-xs">{item.title}</p>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-sm text-[#3A3733]/80">{item.category}</td>
+                                                                <td className="px-6 py-4 text-sm text-[#3A3733]/80 truncate max-w-xs">{item.speakers}</td>
+                                                                <td className="px-6 py-4 text-sm text-[#9A9186]">{item.order}</td>
+                                                                <td className="px-6 py-4">
+                                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.status === 'Ativo' ? 'bg-[#16243A] text-[#F3F1EC]' : 'bg-[#C7BFB3]/40 text-[#3A3733]'}`}>{item.status}</span>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-right">
+                                                                    <div className="flex items-center justify-end gap-2">
+                                                                        <button onClick={() => handleStartEditAgenda(item)} title="Editar" className="p-2 text-[#9A9186] hover:text-[#16243A] hover:bg-[#C7BFB3]/20 rounded-lg transition-colors"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
+                                                                        <button onClick={() => handleDeleteAgenda(item)} title="Excluir" className="p-2 text-[#9A9186] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* TELA 7: CRIAR / EDITAR EVENTO DA AGENDA */}
+                            {currentView === 'createAgenda' && (
+                                <motion.div key="createAgenda" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="max-w-3xl mx-auto">
+                                    <button onClick={() => { resetAgendaForm(); setCurrentView('agenda'); }} className="mb-6 flex items-center gap-2 text-sm font-semibold text-[#9A9186] hover:text-[#16243A] transition-colors">
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                                        Voltar para agenda
+                                    </button>
+
+                                    <div className="bg-white rounded-2xl shadow-sm border border-[#C7BFB3]/60 p-6 md:p-10">
+                                        <div className="space-y-6">
+                                            <div>
+                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Categoria</label>
+                                                <input
+                                                    type="text"
+                                                    value={agendaFormData.category}
+                                                    onChange={(e) => setAgendaFormData({ ...agendaFormData, category: e.target.value })}
+                                                    placeholder="Ex: [ PROGRAMA ESPECIAL ]"
+                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Título do Evento</label>
+                                                <input
+                                                    type="text"
+                                                    value={agendaFormData.title}
+                                                    onChange={(e) => setAgendaFormData({ ...agendaFormData, title: e.target.value })}
+                                                    placeholder="Ex: Estratégia e Inovação — 2026/2027"
+                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Palestrantes</label>
+                                                <input
+                                                    type="text"
+                                                    value={agendaFormData.speakers}
+                                                    onChange={(e) => setAgendaFormData({ ...agendaFormData, speakers: e.target.value })}
+                                                    placeholder="Ex: HELENA VILLA-LOBOS, ROBERTO K. MENDES"
+                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                />
+                                                <p className="text-xs text-[#9A9186] mt-1.5">Separe os nomes por vírgula.</p>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Imagem de Fundo (URL)</label>
+                                                <input
+                                                    type="text"
+                                                    value={agendaFormData.image}
+                                                    onChange={(e) => setAgendaFormData({ ...agendaFormData, image: e.target.value })}
+                                                    placeholder="https://..."
+                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                />
+                                                {agendaFormData.image && (
+                                                    <div className="mt-3 rounded-xl overflow-hidden border border-[#C7BFB3]/60 bg-white">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img
+                                                            src={agendaFormData.image}
+                                                            alt="Pré-visualização"
+                                                            className="w-full h-32 object-cover"
+                                                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Link (opcional)</label>
+                                                <input
+                                                    type="text"
+                                                    value={agendaFormData.link}
+                                                    onChange={(e) => setAgendaFormData({ ...agendaFormData, link: e.target.value })}
+                                                    placeholder="https://..."
+                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Tamanho do Card</label>
+                                                <select
+                                                    value={agendaFormData.gridClass}
+                                                    onChange={(e) => setAgendaFormData({ ...agendaFormData, gridClass: e.target.value })}
+                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                >
+                                                    {AGENDA_LAYOUT_OPTIONS.map((opt) => (
+                                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div>
+                                                    <label className="block text-sm font-bold text-[#3A3733] mb-2">Ordem de Exibição</label>
+                                                    <input
+                                                        type="number"
+                                                        value={agendaFormData.order}
+                                                        onChange={(e) => setAgendaFormData({ ...agendaFormData, order: Number(e.target.value) })}
+                                                        className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-bold text-[#3A3733] mb-2">Status</label>
+                                                    <select
+                                                        value={agendaFormData.status}
+                                                        onChange={(e) => setAgendaFormData({ ...agendaFormData, status: e.target.value })}
+                                                        className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                    >
+                                                        <option value="Ativo">Ativo</option>
+                                                        <option value="Inativo">Inativo</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-6 border-t border-[#C7BFB3]/30 flex justify-end gap-4">
+                                                <button
+                                                    onClick={() => { resetAgendaForm(); setCurrentView('agenda'); }}
+                                                    className="px-6 py-3 rounded-lg font-bold text-[#3A3733] bg-[#F3F1EC] hover:bg-[#C7BFB3]/30 transition-colors"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                                <button
+                                                    disabled={isSubmittingAgenda}
+                                                    onClick={handleCreateAgenda}
+                                                    className="px-6 py-3 rounded-lg font-bold text-[#F3F1EC] bg-[#16243A] hover:bg-[#16243A]/90 shadow-md transition-colors disabled:opacity-50"
+                                                >
+                                                    {isSubmittingAgenda ? 'Salvando...' : editingAgendaId ? 'Salvar Alterações' : 'Salvar Evento'}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </motion.div>
