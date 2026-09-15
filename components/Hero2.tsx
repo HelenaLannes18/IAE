@@ -96,7 +96,7 @@ export default function Hero() {
                         variants={fadeInUp}
                         className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight mb-8"
                     >
-                        IAE: Conectando <br />
+                        IAE: Conectandoa <br />
                         a técnica jurídica <br />
                         à realidade <br />
                         corporativa.
