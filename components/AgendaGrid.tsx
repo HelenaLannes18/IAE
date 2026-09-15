@@ -79,6 +79,11 @@ export default function AgendaGrid() {
         return speakersStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
     };
 
+    // Sem eventos ativos: a seção inteira não é exibida no site
+    if (!isLoading && agendaItems.length === 0) {
+        return null;
+    }
+
     return (
         <section
             // cursor-none esconde o ponteiro padrão do sistema
@@ -126,10 +131,6 @@ export default function AgendaGrid() {
                         <div className="md:col-span-2 md:row-span-1 bg-zinc-900 animate-pulse rounded-sm"></div>
                         <div className="md:col-span-1 md:row-span-1 bg-zinc-900 animate-pulse rounded-sm"></div>
                         <div className="md:col-span-1 md:row-span-1 bg-zinc-900 animate-pulse rounded-sm"></div>
-                    </div>
-                ) : agendaItems.length === 0 ? (
-                    <div className="text-center py-20 text-zinc-500 font-bold uppercase tracking-widest">
-                        Nenhum evento agendado no momento.
                     </div>
                 ) : (
                     <motion.div

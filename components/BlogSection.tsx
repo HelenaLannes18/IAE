@@ -60,6 +60,11 @@ export default function BlogSection() {
         return `${minutes} min`;
     };
 
+    // Sem artigos publicados: a seção inteira não é exibida no site
+    if (!isLoading && posts.length === 0) {
+        return null;
+    }
+
     return (
         // Fundo principal Off-White Elegante
         <section className="py-24 md:py-32 bg-[#F3F1EC] relative">
@@ -105,11 +110,6 @@ export default function BlogSection() {
                                 <div className="h-4 bg-gray-300 w-full rounded"></div>
                             </div>
                         ))}
-                    </div>
-                ) : posts.length === 0 ? (
-                    // Mensagem caso não haja nenhum artigo no banco com status 'Publicado'
-                    <div className="text-center text-[#9A9186] py-10 font-medium col-span-3">
-                        Nenhum artigo publicado no momento.
                     </div>
                 ) : (
                     <motion.div
