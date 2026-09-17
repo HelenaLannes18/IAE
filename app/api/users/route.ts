@@ -38,13 +38,20 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { name, email, role, status, password, imageUrl } = body;
+        const { name, role, status, password, imageUrl } = body;
+        let { email } = body;
 
-        if (!name || !email || !password) {
-            return NextResponse.json({ error: 'Nome, e-mail e senha são obrigatórios.' }, { status: 400 });
+        if (!name) {
+            return NextResponse.json({ error: 'O nome é obrigatório.' }, { status: 400 });
         }
 
-        if (password.length < 6) {
+        // "Autor" rápido criado direto na tela de artigo: sem login, sem e-mail informado.
+        // Gera um e-mail técnico só pra satisfazer a unicidade do banco — nunca é usado pra login.
+        if (!email) {
+            email = `autor-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@sem-login.iae`;
+        }
+
+        if (password && password.length < 6) {
             return NextResponse.json({ error: 'A senha deve ter pelo menos 6 caracteres.' }, { status: 400 });
         }
 
@@ -54,7 +61,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Já existe um usuário com este e-mail.' }, { status: 409 });
         }
 
-        const hashedPassword = await hashPassword(password);
+        const hashedPassword = password ? await hashPassword(password) : null;
 
         const newUser = await prisma.user.create({
             data: {

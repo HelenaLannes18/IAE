@@ -27,6 +27,12 @@ export default function AdminBlogArea() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingPostId, setEditingPostId] = useState<number | null>(null);
 
+    // Criacao rapida de um novo autor (nome + foto), direto na tela do artigo
+    const [showNewAuthorForm, setShowNewAuthorForm] = useState(false);
+    const [newAuthorName, setNewAuthorName] = useState('');
+    const [newAuthorImageUrl, setNewAuthorImageUrl] = useState('');
+    const [isCreatingAuthor, setIsCreatingAuthor] = useState(false);
+
     // Formulário de usuário (criação e edição)
     const [userFormData, setUserFormData] = useState({
         name: '',
@@ -126,6 +132,41 @@ export default function AdminBlogArea() {
                 ? prev.authorIds.filter((id) => id !== userId)
                 : [...prev.authorIds, userId]
         }));
+    };
+
+    // Cria um autor "rapido" (so nome + foto, sem login) e ja marca ele no artigo
+    const handleCreateQuickAuthor = async () => {
+        if (!newAuthorName.trim()) return alert("Digite o nome do autor!");
+
+        setIsCreatingAuthor(true);
+        try {
+            const response = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: newAuthorName.trim(),
+                    imageUrl: newAuthorImageUrl.trim() || null,
+                    role: 'Autor',
+                    status: 'Ativo'
+                })
+            });
+
+            if (response.ok) {
+                const newUser = await response.json();
+                setUsers((prev) => [newUser, ...prev]);
+                setFormData((prev) => ({ ...prev, authorIds: [...prev.authorIds, newUser.id] }));
+                setNewAuthorName('');
+                setNewAuthorImageUrl('');
+                setShowNewAuthorForm(false);
+            } else {
+                const data = await response.json().catch(() => ({}));
+                alert(data.error || "Erro ao criar autor.");
+            }
+        } catch (error) {
+            console.error("Erro na requisicao:", error);
+        } finally {
+            setIsCreatingAuthor(false);
+        }
     };
 
     // Cria OU atualiza um artigo, dependendo se estamos editando
@@ -759,6 +800,49 @@ export default function AdminBlogArea() {
                                                                 ))
                                                             )}
                                                         </div>
+                                                        {showNewAuthorForm ? (
+                                                            <div className="mt-2 p-3 bg-white border border-[#C7BFB3] rounded-xl space-y-2">
+                                                                <input
+                                                                    type="text"
+                                                                    value={newAuthorName}
+                                                                    onChange={(e) => setNewAuthorName(e.target.value)}
+                                                                    placeholder="Nome do novo autor"
+                                                                    className="w-full px-3 py-2 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A]"
+                                                                />
+                                                                <input
+                                                                    type="text"
+                                                                    value={newAuthorImageUrl}
+                                                                    onChange={(e) => setNewAuthorImageUrl(e.target.value)}
+                                                                    placeholder="Foto do autor (URL)"
+                                                                    className="w-full px-3 py-2 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A]"
+                                                                />
+                                                                <div className="flex gap-2">
+                                                                    <button
+                                                                        type="button"
+                                                                        disabled={isCreatingAuthor}
+                                                                        onClick={handleCreateQuickAuthor}
+                                                                        className="flex-1 bg-[#16243A] hover:bg-[#16243A]/90 text-[#F3F1EC] py-2 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
+                                                                    >
+                                                                        {isCreatingAuthor ? 'Adicionando...' : 'Adicionar Autor'}
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => { setShowNewAuthorForm(false); setNewAuthorName(''); setNewAuthorImageUrl(''); }}
+                                                                        className="px-4 py-2 rounded-lg text-sm font-bold text-[#3A3733] bg-[#F3F1EC] hover:bg-[#C7BFB3]/30 transition-colors"
+                                                                    >
+                                                                        Cancelar
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setShowNewAuthorForm(true)}
+                                                                className="mt-2 w-full text-sm font-semibold text-[#16243A] hover:text-[#9A9186] border border-dashed border-[#C7BFB3] rounded-lg py-2 transition-colors"
+                                                            >
+                                                                + Adicionar novo autor
+                                                            </button>
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <label className="block text-sm font-bold text-[#3A3733] mb-2">Imagem de Capa (URL)</label>
