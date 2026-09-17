@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/password';
+import { getAdminSession } from '@/lib/auth';
 
 // Método para LISTAR os usuários (nunca retorna o hash da senha)
 export async function GET() {
     try {
+        if (!(await getAdminSession())) {
+            return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+        }
+
         const users = await prisma.user.findMany({
             select: {
                 id: true,
@@ -28,6 +33,10 @@ export async function GET() {
 // Método para CRIAR um novo usuário
 export async function POST(request: Request) {
     try {
+        if (!(await getAdminSession())) {
+            return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+        }
+
         const body = await request.json();
         const { name, email, role, status, password, imageUrl } = body;
 

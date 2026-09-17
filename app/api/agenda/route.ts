@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAdminSession } from '@/lib/auth';
 
 // Método para LISTAR os itens da agenda (usado no admin e no site público)
 export async function GET() {
@@ -18,6 +19,10 @@ export async function GET() {
 // Método para CRIAR um novo item da agenda
 export async function POST(request: Request) {
     try {
+        if (!(await getAdminSession())) {
+            return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+        }
+
         const body = await request.json();
         const { category, title, image, gridClass, speakers, link, order, status } = body;
 

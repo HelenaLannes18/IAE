@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAdminSession } from '@/lib/auth';
 
 interface Params {
     params: Promise<{ id: string }>;
@@ -11,7 +12,7 @@ export async function GET(request: Request, { params }: Params) {
         const { id } = await params;
         const post = await prisma.post.findUnique({
             where: { id: Number(id) },
-            include: { author: true }
+            include: { authors: { select: { id: true, name: true, imageUrl: true } } }
         });
 
         if (!post) {
@@ -28,18 +29,33 @@ export async function GET(request: Request, { params }: Params) {
 // Método para ATUALIZAR um artigo (edição ou mudança de status: publicar/rascunho)
 export async function PUT(request: Request, { params }: Params) {
     try {
+        if (!(await getAdminSession())) {
+            return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+        }
+
         const { id } = await params;
         const body = await request.json();
-        const { title, content, category, status, imageUrl } = body;
+        const { title, content, category, status, imageUrl, authorIds } = body;
 
         if (!title) {
             return NextResponse.json({ error: 'O título é obrigatório.' }, { status: 400 });
         }
 
+        if (!Array.isArray(authorIds) || authorIds.length === 0) {
+            return NextResponse.json({ error: 'Selecione pelo menos um autor.' }, { status: 400 });
+        }
+
         const updatedPost = await prisma.post.update({
             where: { id: Number(id) },
-            data: { title, content, category, status, imageUrl },
-            include: { author: true }
+            data: {
+                title,
+                content,
+                category,
+                status,
+                imageUrl,
+                authors: { set: authorIds.map((authorId: number) => ({ id: Number(authorId) })) }
+            },
+            include: { authors: { select: { id: true, name: true, imageUrl: true } } }
         });
 
         return NextResponse.json(updatedPost);
@@ -52,6 +68,10 @@ export async function PUT(request: Request, { params }: Params) {
 // Método para EXCLUIR um artigo
 export async function DELETE(request: Request, { params }: Params) {
     try {
+        if (!(await getAdminSession())) {
+            return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+        }
+
         const { id } = await params;
         await prisma.post.delete({ where: { id: Number(id) } });
         return NextResponse.json({ success: true });

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/password';
+import { getAdminSession } from '@/lib/auth';
 
 interface Params {
     params: Promise<{ id: string }>;
@@ -9,6 +10,10 @@ interface Params {
 // Método para BUSCAR um usuário específico (sem o hash da senha)
 export async function GET(request: Request, { params }: Params) {
     try {
+        if (!(await getAdminSession())) {
+            return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+        }
+
         const { id } = await params;
         const user = await prisma.user.findUnique({
             where: { id: Number(id) },
@@ -37,6 +42,10 @@ export async function GET(request: Request, { params }: Params) {
 // Método para ATUALIZAR um usuário. A senha só é alterada se for enviada no corpo da requisição.
 export async function PUT(request: Request, { params }: Params) {
     try {
+        if (!(await getAdminSession())) {
+            return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+        }
+
         const { id } = await params;
         const body = await request.json();
         const { name, email, role, status, password, imageUrl } = body;
@@ -86,16 +95,22 @@ export async function PUT(request: Request, { params }: Params) {
 // Método para EXCLUIR um usuário
 export async function DELETE(request: Request, { params }: Params) {
     try {
+        if (!(await getAdminSession())) {
+            return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+        }
+
         const { id } = await params;
 
-        // Impede a exclusão se o usuário ainda tiver artigos vinculados
-        const postsCount = await prisma.post.count({
-            where: { authorId: Number(id) }
+        // Impede a exclusão se o usuário for o único autor de algum artigo
+        // (se houver outros autores no artigo, a exclusão é permitida normalmente)
+        const authoredPosts = await prisma.post.findMany({
+            where: { authors: { some: { id: Number(id) } } },
+            select: { authors: { select: { id: true } } }
         });
 
-        if (postsCount > 0) {
+        if (authoredPosts.some((post) => post.authors.length === 1)) {
             return NextResponse.json(
-                { error: 'Não é possível excluir: este usuário possui artigos vinculados. Transfira ou exclua os artigos primeiro.' },
+                { error: 'Não é possível excluir: este usuário é o único autor de algum artigo. Adicione outro autor ou exclua o artigo primeiro.' },
                 { status: 409 }
             );
         }

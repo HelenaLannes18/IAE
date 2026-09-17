@@ -167,15 +167,21 @@ export default function BlogPostPage() {
                                 <p className="font-bold text-slate-900 text-sm">{article.formattedDate}</p>
                             </div>
                             <div>
-                                <p className="text-[11px] uppercase tracking-widest text-slate-500 mb-4">Autores</p>
+                                <p className="text-[11px] uppercase tracking-widest text-slate-500 mb-4">{article.authors?.length > 1 ? 'Autores' : 'Autor'}</p>
                                 <div className="flex -space-x-3 mb-3">
-                                    <img
-                                        src={article.author?.imageUrl || "https://i.pravatar.cc/100?img=47"} // Avatar padrão (pode adicionar foto no model de User depois)
-                                        alt="Autor"
-                                        className="w-10 h-10 rounded-full border-2 border-[#f5f4f0] object-cover shadow-sm relative hover:z-10 hover:scale-110 transition-transform cursor-pointer"
-                                    />
+                                    {(article.authors && article.authors.length > 0 ? article.authors : [{ id: 0, name: 'Administrador', imageUrl: null }]).map((author: any) => (
+                                        <img
+                                            key={author.id}
+                                            src={author.imageUrl || "https://i.pravatar.cc/100?img=47"} // Avatar padrão caso o autor não tenha foto
+                                            alt={author.name}
+                                            title={author.name}
+                                            className="w-10 h-10 rounded-full border-2 border-[#f5f4f0] object-cover shadow-sm relative hover:z-10 hover:scale-110 transition-transform cursor-pointer"
+                                        />
+                                    ))}
                                 </div>
-                                <p className="font-bold text-slate-900 text-sm">{article.author?.name || 'Administrador'}</p>
+                                <p className="font-bold text-slate-900 text-sm">
+                                    {article.authors && article.authors.length > 0 ? article.authors.map((a: any) => a.name).join(', ') : 'Administrador'}
+                                </p>
                             </div>
                         </div>
                     </motion.aside>

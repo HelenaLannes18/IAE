@@ -18,7 +18,7 @@ model User {
   role      String   @default("Autor")
   status    String   @default("Ativo")
   createdAt DateTime @default(now())
-  posts     Post[]
+  posts     Post[]   @relation("PostAuthors")
 }
 
 // Tabela de Artigos do Blog
@@ -32,9 +32,8 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relação com o autor
-  authorId Int
-  author   User @relation(fields: [authorId], references: [id])
+  // Um artigo pode ter vários autores (cada um com sua foto exibida no artigo)
+  authors User[] @relation("PostAuthors")
 }
 
 model Lead {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import RichTextEditor from '@/components/Richtexteditor';
 
@@ -23,7 +23,7 @@ export default function AdminBlogArea() {
     const [agendaSearch, setAgendaSearch] = useState('');
 
     // Formulário de artigo (criação e edição)
-    const [formData, setFormData] = useState({ title: '', content: '', category: 'Insights', imageUrl: '' });
+    const [formData, setFormData] = useState<{ title: string; content: string; category: string; imageUrl: string; authorIds: number[] }>({ title: '', content: '', category: 'Insights', imageUrl: '', authorIds: [] });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingPostId, setEditingPostId] = useState<number | null>(null);
 
@@ -97,7 +97,7 @@ export default function AdminBlogArea() {
     // ---------- ARTIGOS ----------
 
     const resetPostForm = () => {
-        setFormData({ title: '', content: '', category: 'Insights', imageUrl: '' });
+        setFormData({ title: '', content: '', category: 'Insights', imageUrl: '', authorIds: [] });
         setEditingPostId(null);
     };
 
@@ -111,16 +111,28 @@ export default function AdminBlogArea() {
             title: post.title || '',
             content: post.content || '',
             category: post.category || 'Insights',
-            imageUrl: post.imageUrl || ''
+            imageUrl: post.imageUrl || '',
+            authorIds: (post.authors || []).map((a: any) => a.id)
         });
         setEditingPostId(post.id);
         setCurrentView('create');
+    };
+
+    // Alterna a seleção de um autor no formulário do artigo
+    const toggleFormAuthor = (userId: number) => {
+        setFormData((prev) => ({
+            ...prev,
+            authorIds: prev.authorIds.includes(userId)
+                ? prev.authorIds.filter((id) => id !== userId)
+                : [...prev.authorIds, userId]
+        }));
     };
 
     // Cria OU atualiza um artigo, dependendo se estamos editando
     const handleCreatePost = async (e: React.FormEvent, status: string) => {
         e.preventDefault();
         if (!formData.title) return alert("O título é obrigatório!");
+        if (formData.authorIds.length === 0) return alert("Selecione pelo menos um autor!");
 
         setIsSubmitting(true);
         try {
@@ -133,8 +145,7 @@ export default function AdminBlogArea() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
-                    status: status,
-                    authorId: 1
+                    status: status
                 })
             });
 
@@ -376,7 +387,7 @@ export default function AdminBlogArea() {
         return posts.filter((p) =>
             p.title?.toLowerCase().includes(term) ||
             p.category?.toLowerCase().includes(term) ||
-            p.author?.name?.toLowerCase().includes(term)
+            (p.authors || []).some((a: any) => a.name?.toLowerCase().includes(term))
         );
     }, [posts, postSearch]);
 
@@ -501,7 +512,7 @@ export default function AdminBlogArea() {
                             <p className="text-[#9A9186] font-bold animate-pulse">Carregando dados reais...</p>
                         </div>
                     ) : (
-                        <AnimatePresence mode="wait">
+                        <>
                             {/* TELA 0: DASHBOARD */}
                             {currentView === 'dashboard' && (
                                 <motion.div key="dashboard" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="max-w-6xl mx-auto space-y-8">
@@ -595,7 +606,7 @@ export default function AdminBlogArea() {
                                                     <tr className="bg-[#F3F1EC]/50 border-b border-[#C7BFB3]/50 text-xs uppercase tracking-wider text-[#9A9186] font-semibold">
                                                         <th className="px-6 py-4">Título</th>
                                                         <th className="px-6 py-4">Categoria</th>
-                                                        <th className="px-6 py-4">Autor</th>
+                                                        <th className="px-6 py-4">Autores</th>
                                                         <th className="px-6 py-4">Data</th>
                                                         <th className="px-6 py-4">Status</th>
                                                         <th className="px-6 py-4 text-right">Ações</th>
@@ -621,7 +632,27 @@ export default function AdminBlogArea() {
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-6 py-4 text-sm text-[#3A3733]/80">{post.category}</td>
-                                                                <td className="px-6 py-4 text-sm text-[#3A3733]/80">{post.author?.name || 'Desconhecido'}</td>
+                                                                <td className="px-6 py-4">
+                                                                    {post.authors && post.authors.length > 0 ? (
+                                                                        <div className="flex items-center">
+                                                                            <div className="flex -space-x-2">
+                                                                                {post.authors.map((a: any) => (
+                                                                                    a.imageUrl ? (
+                                                                                        // eslint-disable-next-line @next/next/no-img-element
+                                                                                        <img key={a.id} src={a.imageUrl} alt={a.name} title={a.name} className="w-7 h-7 rounded-full object-cover border-2 border-white shadow-sm" onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
+                                                                                    ) : (
+                                                                                        <div key={a.id} title={a.name} className="w-7 h-7 rounded-full bg-[#F3F1EC] border-2 border-white flex items-center justify-center text-[#9A9186] font-bold text-[10px] shadow-sm">
+                                                                                            {a.name ? a.name.charAt(0).toUpperCase() : '?'}
+                                                                                        </div>
+                                                                                    )
+                                                                                ))}
+                                                                            </div>
+                                                                            <span className="ml-2 text-sm text-[#3A3733]/80 truncate max-w-[140px]">{post.authors.map((a: any) => a.name).join(', ')}</span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="text-sm text-[#9A9186]">Desconhecido</span>
+                                                                    )}
+                                                                </td>
                                                                 <td className="px-6 py-4 text-sm text-[#9A9186]">{formatDate(post.createdAt)}</td>
                                                                 <td className="px-6 py-4">
                                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${post.status === 'Publicado' ? 'bg-[#16243A] text-[#F3F1EC]' : 'bg-[#C7BFB3]/40 text-[#3A3733]'}`}>{post.status}</span>
@@ -684,6 +715,50 @@ export default function AdminBlogArea() {
                                                             <option value="Direito Trabalhista">Direito Trabalhista</option>
                                                             <option value="Tributário">Tributário</option>
                                                         </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-bold text-[#3A3733] mb-2">Autores</label>
+                                                        {formData.authorIds.length > 0 && (
+                                                            <div className="flex -space-x-3 mb-3">
+                                                                {formData.authorIds.map((id) => {
+                                                                    const author = users.find((u) => u.id === id);
+                                                                    if (!author) return null;
+                                                                    return author.imageUrl ? (
+                                                                        // eslint-disable-next-line @next/next/no-img-element
+                                                                        <img key={id} src={author.imageUrl} alt={author.name} title={author.name} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
+                                                                    ) : (
+                                                                        <div key={id} title={author.name} className="w-10 h-10 rounded-full bg-[#F3F1EC] border-2 border-white flex items-center justify-center text-[#9A9186] font-bold text-sm shadow-sm">
+                                                                            {author.name ? author.name.charAt(0).toUpperCase() : '?'}
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                        <div className="max-h-56 overflow-y-auto space-y-1 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl p-2">
+                                                            {users.length === 0 ? (
+                                                                <p className="text-sm text-[#9A9186] p-2">Nenhum usuário cadastrado.</p>
+                                                            ) : (
+                                                                users.map((user) => (
+                                                                    <label key={user.id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-white/70 cursor-pointer transition-colors">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={formData.authorIds.includes(user.id)}
+                                                                            onChange={() => toggleFormAuthor(user.id)}
+                                                                            className="w-4 h-4 accent-[#16243A]"
+                                                                        />
+                                                                        {user.imageUrl ? (
+                                                                            // eslint-disable-next-line @next/next/no-img-element
+                                                                            <img src={user.imageUrl} alt="" className="w-7 h-7 rounded-full object-cover border border-[#C7BFB3]/60 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
+                                                                        ) : (
+                                                                            <div className="w-7 h-7 rounded-full bg-white border border-[#C7BFB3]/60 flex items-center justify-center text-[#9A9186] font-bold text-xs shrink-0">
+                                                                                {user.name ? user.name.charAt(0).toUpperCase() : '?'}
+                                                                            </div>
+                                                                        )}
+                                                                        <span className="text-sm text-[#3A3733] truncate">{user.name}</span>
+                                                                    </label>
+                                                                ))
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     <div>
                                                         <label className="block text-sm font-bold text-[#3A3733] mb-2">Imagem de Capa (URL)</label>
@@ -1187,7 +1262,7 @@ export default function AdminBlogArea() {
                                     </div>
                                 </motion.div>
                             )}
-                        </AnimatePresence>
+                        </>
                     )}
                 </div>
             </main>

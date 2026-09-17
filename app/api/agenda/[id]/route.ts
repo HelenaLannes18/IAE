@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAdminSession } from '@/lib/auth';
 
 interface Params {
     params: Promise<{ id: string }>;
@@ -27,6 +28,10 @@ export async function GET(request: Request, { params }: Params) {
 // Método para ATUALIZAR um item da agenda
 export async function PUT(request: Request, { params }: Params) {
     try {
+        if (!(await getAdminSession())) {
+            return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+        }
+
         const { id } = await params;
         const body = await request.json();
         const { category, title, image, gridClass, speakers, link, order, status } = body;
@@ -59,6 +64,10 @@ export async function PUT(request: Request, { params }: Params) {
 // Método para EXCLUIR um item da agenda
 export async function DELETE(request: Request, { params }: Params) {
     try {
+        if (!(await getAdminSession())) {
+            return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+        }
+
         const { id } = await params;
         await prisma.agenda.delete({ where: { id: Number(id) } });
         return NextResponse.json({ success: true });
