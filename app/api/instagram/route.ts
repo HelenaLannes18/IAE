@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server';
 
-export async function GET() {
-    // Você precisa colocar seu token do Instagram no arquivo .env local:
-    // INSTAGRAM_ACCESS_TOKEN=seu_token_aqui
-    const token = process.env.INSTAGRAM_ACCESS_TOKEN;
+const GRAPH_API_VERSION = 'v25.0';
 
-    if (!token) {
-        return NextResponse.json({ error: 'Token do Instagram ausente' }, { status: 500 });
+export async function GET() {
+    const token = process.env.INSTAGRAM_ACCESS_TOKEN;
+    const businessId = process.env.INSTAGRAM_BUSINESS_ID;
+
+    if (!token || !businessId) {
+        return NextResponse.json({ error: 'Token ou ID da conta do Instagram ausente' }, { status: 500 });
     }
 
     try {
-        // Busca os últimos posts (id, link do post e link da imagem)
-        const url = `https://graph.instagram.com/me/media?fields=id,media_url,permalink,media_type&access_token=${token}`;
-        
+        const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${businessId}/media?fields=id,media_url,permalink,media_type,username,caption&access_token=${token}`;
+
         const response = await fetch(url);
         const data = await response.json();
 
@@ -20,7 +20,6 @@ export async function GET() {
             throw new Error(data.error.message);
         }
 
-        // Filtra para pegar apenas Imagens ou Carrosseis (ignora vídeos/reels para evitar quebrar o grid)
         const photosOnly = data.data.filter((post: any) => post.media_type === 'IMAGE' || post.media_type === 'CAROUSEL_ALBUM');
 
         return NextResponse.json({ data: photosOnly });
