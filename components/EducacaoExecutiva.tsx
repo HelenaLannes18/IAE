@@ -11,7 +11,8 @@ const PROGRAMAS = [
         slug: "direito-regulatorio",
         desc: "Compreenda a lógica regulatória aplicada aos setores estratégicos da economia e desenvolva visão prática sobre governança, risco e atuação institucional.",
         // Imagem nova: Ambiente corporativo elegante e foco estratégico
-        image: "https://images.unsplash.com/photo-1551135049-8a33b5883817?q=80&w=925&auto=format&fit=crop&ixlib=rb-4.1.0",
+        image: "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        grayscale: true,
         inverse: false
     },
     {
@@ -69,7 +70,7 @@ export default function EducacaoExecutiva() {
                                     <img
                                         src={programa.image}
                                         alt={programa.title}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                        className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out ${programa.grayscale ? 'grayscale' : ''}`}
                                     />
                                 </div>
 

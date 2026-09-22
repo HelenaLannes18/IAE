@@ -22,6 +22,7 @@ export async function GET(request: Request, { params }: Params) {
                 name: true,
                 email: true,
                 imageUrl: true,
+                bio: true,
                 role: true,
                 status: true,
                 createdAt: true
@@ -48,7 +49,7 @@ export async function PUT(request: Request, { params }: Params) {
 
         const { id } = await params;
         const body = await request.json();
-        const { name, email, role, status, password, imageUrl } = body;
+        const { name, email, role, status, password, imageUrl, bio } = body;
 
         if (!name || !email) {
             return NextResponse.json({ error: 'Nome e e-mail são obrigatórios.' }, { status: 400 });
@@ -66,7 +67,7 @@ export async function PUT(request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Já existe um usuário com este e-mail.' }, { status: 409 });
         }
 
-        const data: Record<string, unknown> = { name, email, role, status, imageUrl: imageUrl || null };
+        const data: Record<string, unknown> = { name, email, role, status, imageUrl: imageUrl || null, bio: bio || null };
         if (password) {
             data.password = await hashPassword(password);
         }
@@ -79,6 +80,7 @@ export async function PUT(request: Request, { params }: Params) {
                 name: true,
                 email: true,
                 imageUrl: true,
+                bio: true,
                 role: true,
                 status: true,
                 createdAt: true

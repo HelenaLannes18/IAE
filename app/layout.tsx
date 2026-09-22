@@ -9,9 +9,26 @@ const inter = Inter({
   display: "swap",
 });
 
+const SITE_URL = "https://www.iae.edu.br";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "IAE - Instituto de Advocacia Empresarial",
   description: "Conectando a técnica jurídica à realidade corporativa.",
+  openGraph: {
+    title: "IAE - Instituto de Advocacia Empresarial",
+    description: "Conectando a técnica jurídica à realidade corporativa.",
+    siteName: "IAE - Instituto de Advocacia Empresarial",
+    locale: "pt_BR",
+    type: "website",
+    images: [{ url: "/logo.png" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "IAE - Instituto de Advocacia Empresarial",
+    description: "Conectando a técnica jurídica à realidade corporativa.",
+    images: ["/logo.png"],
+  },
 };
 
 export default function RootLayout({

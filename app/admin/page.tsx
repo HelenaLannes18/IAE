@@ -32,6 +32,7 @@ export default function AdminBlogArea() {
     const [showNewAuthorForm, setShowNewAuthorForm] = useState(false);
     const [newAuthorName, setNewAuthorName] = useState('');
     const [newAuthorImageUrl, setNewAuthorImageUrl] = useState('');
+    const [newAuthorBio, setNewAuthorBio] = useState('');
     const [isCreatingAuthor, setIsCreatingAuthor] = useState(false);
 
     // Formulário de usuário (criação e edição)
@@ -40,6 +41,7 @@ export default function AdminBlogArea() {
         email: '',
         password: '',
         imageUrl: '',
+        bio: '',
         role: 'Autor',
         status: 'Ativo'
     });
@@ -147,6 +149,7 @@ export default function AdminBlogArea() {
                 body: JSON.stringify({
                     name: newAuthorName.trim(),
                     imageUrl: newAuthorImageUrl.trim() || null,
+                    bio: newAuthorBio.trim() || null,
                     role: 'Autor',
                     status: 'Ativo'
                 })
@@ -158,6 +161,7 @@ export default function AdminBlogArea() {
                 setFormData((prev) => ({ ...prev, authorIds: [...prev.authorIds, newUser.id] }));
                 setNewAuthorName('');
                 setNewAuthorImageUrl('');
+                setNewAuthorBio('');
                 setShowNewAuthorForm(false);
             } else {
                 const data = await response.json().catch(() => ({}));
@@ -225,7 +229,7 @@ export default function AdminBlogArea() {
     // ---------- USUÁRIOS ----------
 
     const resetUserForm = () => {
-        setUserFormData({ name: '', email: '', password: '', imageUrl: '', role: 'Autor', status: 'Ativo' });
+        setUserFormData({ name: '', email: '', password: '', imageUrl: '', bio: '', role: 'Autor', status: 'Ativo' });
         setEditingUserId(null);
     };
 
@@ -240,6 +244,7 @@ export default function AdminBlogArea() {
             email: user.email || '',
             password: '',
             imageUrl: user.imageUrl || '',
+            bio: user.bio || '',
             role: user.role || 'Autor',
             status: user.status || 'Ativo'
         });
@@ -263,7 +268,7 @@ export default function AdminBlogArea() {
 
             // Na edição, só envia a senha se o campo foi preenchido (mantém a senha atual caso contrário)
             const payload = isEditing && !userFormData.password
-                ? { name: userFormData.name, email: userFormData.email, imageUrl: userFormData.imageUrl, role: userFormData.role, status: userFormData.status }
+                ? { name: userFormData.name, email: userFormData.email, imageUrl: userFormData.imageUrl, bio: userFormData.bio, role: userFormData.role, status: userFormData.status }
                 : userFormData;
 
             const response = await fetch(url, {
@@ -816,6 +821,13 @@ export default function AdminBlogArea() {
                                                                     placeholder="Foto do autor (URL)"
                                                                     inputClassName="flex-1 min-w-0 px-3 py-2 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A]"
                                                                 />
+                                                                <textarea
+                                                                    value={newAuthorBio}
+                                                                    onChange={(e) => setNewAuthorBio(e.target.value)}
+                                                                    placeholder="Mini currículo do autor (exibido junto com a foto no artigo)"
+                                                                    rows={2}
+                                                                    className="w-full px-3 py-2 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] resize-none"
+                                                                />
                                                                 <div className="flex gap-2">
                                                                     <button
                                                                         type="button"
@@ -827,7 +839,7 @@ export default function AdminBlogArea() {
                                                                     </button>
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => { setShowNewAuthorForm(false); setNewAuthorName(''); setNewAuthorImageUrl(''); }}
+                                                                        onClick={() => { setShowNewAuthorForm(false); setNewAuthorName(''); setNewAuthorImageUrl(''); setNewAuthorBio(''); }}
                                                                         className="px-4 py-2 rounded-lg text-sm font-bold text-[#3A3733] bg-[#F3F1EC] hover:bg-[#C7BFB3]/30 transition-colors"
                                                                     >
                                                                         Cancelar
@@ -1010,6 +1022,18 @@ export default function AdminBlogArea() {
                                                         onChange={(url) => setUserFormData({ ...userFormData, imageUrl: url })}
                                                     />
                                                 </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Mini Currículo</label>
+                                                <textarea
+                                                    value={userFormData.bio}
+                                                    onChange={(e) => setUserFormData({ ...userFormData, bio: e.target.value })}
+                                                    placeholder="Ex: Mestre em Direito da Regulação pela FGV, atua há 10 anos com compliance corporativo."
+                                                    rows={3}
+                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all resize-none"
+                                                />
+                                                <p className="text-xs text-[#9A9186] mt-1.5">Exibido junto com a foto do autor nos artigos do blog.</p>
                                             </div>
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

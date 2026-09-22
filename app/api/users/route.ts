@@ -16,6 +16,7 @@ export async function GET() {
                 name: true,
                 email: true,
                 imageUrl: true,
+                bio: true,
                 role: true,
                 status: true,
                 createdAt: true
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { name, role, status, password, imageUrl } = body;
+        const { name, role, status, password, imageUrl, bio } = body;
         let { email } = body;
 
         if (!name) {
@@ -69,6 +70,7 @@ export async function POST(request: Request) {
                 email,
                 password: hashedPassword,
                 imageUrl: imageUrl || null,
+                bio: bio || null,
                 role: role || 'Autor',
                 status: status || 'Ativo'
             },
@@ -77,6 +79,7 @@ export async function POST(request: Request) {
                 name: true,
                 email: true,
                 imageUrl: true,
+                bio: true,
                 role: true,
                 status: true,
                 createdAt: true

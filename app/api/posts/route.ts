@@ -6,7 +6,7 @@ import { getAdminSession } from '@/lib/auth';
 export async function GET() {
     try {
         const posts = await prisma.post.findMany({
-            include: { authors: { select: { id: true, name: true, imageUrl: true } } }, // Só os dados públicos do autor (sem senha)
+            include: { authors: { select: { id: true, name: true, imageUrl: true, bio: true } } }, // Só os dados públicos do autor (sem senha)
             orderBy: { createdAt: 'desc' }
         });
 
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
                 imageUrl: imageUrl || null, // Se não houver imagem, define como null
                 authors: { connect: authorIds.map((id: number) => ({ id: Number(id) })) }
             },
-            include: { authors: { select: { id: true, name: true, imageUrl: true } } }
+            include: { authors: { select: { id: true, name: true, imageUrl: true, bio: true } } }
         });
 
         return NextResponse.json(newPost, { status: 201 });

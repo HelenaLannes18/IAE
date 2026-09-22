@@ -12,7 +12,7 @@ export async function GET(request: Request, { params }: Params) {
         const { id } = await params;
         const post = await prisma.post.findUnique({
             where: { id: Number(id) },
-            include: { authors: { select: { id: true, name: true, imageUrl: true } } }
+            include: { authors: { select: { id: true, name: true, imageUrl: true, bio: true } } }
         });
 
         if (!post) {
@@ -55,7 +55,7 @@ export async function PUT(request: Request, { params }: Params) {
                 imageUrl,
                 authors: { set: authorIds.map((authorId: number) => ({ id: Number(authorId) })) }
             },
-            include: { authors: { select: { id: true, name: true, imageUrl: true } } }
+            include: { authors: { select: { id: true, name: true, imageUrl: true, bio: true } } }
         });
 
         return NextResponse.json(updatedPost);

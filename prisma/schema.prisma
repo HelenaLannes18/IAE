@@ -15,6 +15,7 @@ model User {
   email     String   @unique
   password  String?
   imageUrl  String?
+  bio       String? // Mini currículo do autor, exibido junto com a foto nos artigos
   role      String   @default("Autor")
   status    String   @default("Ativo")
   createdAt DateTime @default(now())
