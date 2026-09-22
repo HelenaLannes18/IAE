@@ -40,14 +40,14 @@ export default function ImageUrlInput({ value, onChange, placeholder = 'https://
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
-                className={inputClassName || 'flex-1 min-w-0 px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all'}
+                className={inputClassName || 'flex-1 min-w-0 px-4 py-3 bg-[var(--a-input-bg)] border border-transparent rounded-2xl text-[var(--a-text)] placeholder:text-[var(--a-faint)] focus:outline-none focus:border-[var(--a-accent)]/40 transition-all'}
             />
             <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
                 title="Escolher do computador"
-                className="shrink-0 px-4 py-3 rounded-xl border border-[#C7BFB3] text-[#3A3733] text-sm font-bold hover:bg-[#C7BFB3]/30 transition-colors disabled:opacity-50"
+                className="shrink-0 px-4 py-3 rounded-2xl bg-[var(--a-text)]/5 text-[var(--a-text)] text-sm font-bold hover:bg-[var(--a-text)]/10 transition-colors disabled:opacity-50"
             >
                 {isUploading ? 'Enviando...' : 'Procurar...'}
             </button>

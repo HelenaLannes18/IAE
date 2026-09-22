@@ -276,6 +276,53 @@ export default async function ProgramaPage({ params }: PageProps) {
                     </div>
                 </section>
 
+                {/* 6.5 CORPO DOCENTE */}
+                {programa.corpoDocente.length > 0 && (
+                    <section className="border-t border-black/20 px-4 md:px-10 lg:px-16 py-16 md:py-24">
+                        <div className="grid md:grid-cols-12 gap-8 mb-16">
+                            <div className="md:col-span-4 lg:col-span-3">
+                                <AnimatedSection as="h2" className="text-xs uppercase tracking-[0.2em] font-medium text-slate-500">
+                                    Corpo docente
+                                </AnimatedSection>
+                            </div>
+                            <div className="md:col-span-8 lg:col-span-9">
+                                <AnimatedSection as="h3" className="text-5xl md:text-7xl font-medium leading-[0.95] tracking-tighter">
+                                    Quem leciona
+                                </AnimatedSection>
+                            </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-12 gap-8">
+                            <div className="md:col-start-5 md:col-span-8 lg:col-span-8 flex flex-col gap-16">
+                                {programa.corpoDocente.map((docente, di) => (
+                                    <AnimatedSection key={docente.nome} delay={di * 0.05} className="flex flex-col sm:flex-row gap-6 sm:gap-10 items-start">
+                                        {docente.imagem ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img
+                                                src={docente.imagem}
+                                                alt={docente.nome}
+                                                className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover shrink-0 border border-black/10"
+                                            />
+                                        ) : (
+                                            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-slate-200 flex items-center justify-center text-3xl font-medium text-slate-500 shrink-0">
+                                                {docente.nome.charAt(0)}
+                                            </div>
+                                        )}
+                                        <div>
+                                            <h4 className="text-2xl md:text-3xl font-medium text-slate-900 mb-3">
+                                                {docente.nome}
+                                            </h4>
+                                            <p className="text-lg text-slate-600 font-light leading-relaxed">
+                                                {docente.credencial}
+                                            </p>
+                                        </div>
+                                    </AnimatedSection>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
                 {/* 7. INFORMAÇÕES GERAIS */}
                 <section className="border-t border-black/20 px-4 md:px-10 lg:px-16 py-16 md:py-24">
                     <div className="grid md:grid-cols-12 gap-8">

@@ -29,15 +29,17 @@ export default function BoardLandingPage() {
         <Hero2 />
         <QuemSomos />
         <MentorsGrid />
+        <EducacaoExecutiva />
         {/* <MapStats /> */}
         {/* <MissionValues /> */}
         <VideoSection />
         <EventsFormats />
         <IfYouToGet />
-        <EducacaoExecutiva />
-        <AgendaGrid />
+        <div id="noticias">
+          <BlogSection />
+          <AgendaGrid />
+        </div>
         <PhotoGallery />
-        <BlogSection />
         {/* <EcosystemBentoGrid /> */}
         <ApplicationForm />
       </main>

@@ -6,8 +6,9 @@
 // - credenciais sempre nominais
 // - sem vocabulário de infoproduto
 // - posicionamento por afirmação
-// - Daniela Vilhena e José Guilherme Costa NÃO entram no corpo docente
-//   até consentimento formal por escrito (ver ANEXO B, item 2)
+// - Daniela Vilhena e José Guilherme Costa: consentimento formal por escrito
+//   para uso de nome e trajetória obtido (ver ANEXO B, item 2) — já constam
+//   no corpo docente dos programas correspondentes.
 // ---------------------------------------------------------------
 
 export type ProgramaStatus = "confirmado" | "lista-de-espera";
@@ -30,6 +31,7 @@ export interface EstruturaBloco {
 export interface Docente {
     nome: string;
     credencial: string;
+    imagem?: string;
 }
 
 export interface Diferencial {
@@ -171,10 +173,18 @@ const gestaoDepartamentoJuridico: Programa = {
             nome: "Gustavo Costa",
             credencial:
                 "Presidente do Instituto de Advocacia Empresarial. Construiu toda a carreira no jurídico interno: 28 anos na White Martins, do grupo Linde, onde entrou como advogado júnior e chegou a Head of Legal para a América do Sul, com 17 anos como executivo e diretor estatutário. Sob sua liderança, o departamento foi reconhecido em 2024 como o melhor do setor químico e petroquímico. Mestre em Direito Regulatório pela FGV. Autor de Tchau, crachá! (2025).",
+            imagem: "/guga.JPG",
         },
         {
             nome: "Rodrigo Gadben",
             credencial: "Coordenador acadêmico do IAE. Doutor em regulação pela FGV.",
+            imagem: "/rodrigo.jpg",
+        },
+        {
+            nome: "Daniela Vilhena",
+            credencial:
+                "Sócia do Castro Barros Advogados e Conselheira Consultiva da Junior Achievement RJ. Tem sólida trajetória em grandes escritórios de advocacia e como diretora jurídica e de compliance de empresas em setores altamente regulados. No cenário internacional, foi consultora jurídica do Banco Interamericano de Desenvolvimento (BID), em Washington, D.C. Reúne experiência em gestão de riscos, liderança de equipes em transformação e relacionamento com Conselhos de Administração e investidores.",
+            imagem: "/daniela.jpg",
         },
     ],
     infoGerais: [
@@ -338,11 +348,13 @@ const direitoRegulatorio: Programa = {
         {
             nome: "Rodrigo Gadben",
             credencial: "Coordenador acadêmico do IAE. Doutor em regulação pela FGV.",
+            imagem: "/rodrigo.jpg",
         },
         {
             nome: "Gustavo Costa",
             credencial:
                 "Presidente do IAE. Mestre em Direito Regulatório pela FGV. Foram 28 anos na White Martins, do grupo Linde, de advogado júnior a Head of Legal para a América do Sul, com 17 anos como executivo e diretor estatutário. Em 2024, o departamento sob sua liderança foi reconhecido como o melhor do setor químico e petroquímico. Autor de Tchau, crachá! (2025).",
+            imagem: "/guga.JPG",
         },
     ],
     infoGerais: [
@@ -494,7 +506,20 @@ const direitoTributario: Programa = {
     metodologia: [
         "Exposição estruturada, análise aplicada e debate técnico qualificado, em oito encontros presenciais desenhados para profissionais em exercício.",
     ],
-    corpoDocente: [],
+    corpoDocente: [
+        {
+            nome: "Gustavo Costa",
+            credencial:
+                "Presidente do Instituto de Advocacia Empresarial. Construiu toda a carreira no jurídico interno: 28 anos na White Martins, do grupo Linde, onde entrou como advogado júnior e chegou a Head of Legal para a América do Sul, com 17 anos como executivo e diretor estatutário. Sob sua liderança, o departamento foi reconhecido em 2024 como o melhor do setor químico e petroquímico. Mestre em Direito Regulatório pela FGV. Autor de Tchau, crachá! (2025).",
+            imagem: "/guga.JPG",
+        },
+        {
+            nome: "José G. Costa",
+            credencial:
+                "Diretor Jurídico Tributário Corporativo da Vibra Energia, Mestre em Finanças Públicas pela UERJ, Pós-graduado em Direito Tributário pela Candido Mendes, Membro da CEAT da OAB/RJ, da ABDF e do GDT-Rio, Coordenador Técnico do Fórum Carioca de Tax e Compliance, Professor do LLM em Direito Tributário da Mackenzie, do IBMEC e da PUC-Campinas, além de ser Coordenador e coautor de diversas obras jurídicas literárias.",
+            imagem: "/jose.JPG",
+        },
+    ],
     infoGerais: [
         { label: "Carga horária", valor: "24 horas — 8 encontros de 3 horas" },
         { label: "Formato", valor: "Presencial" },

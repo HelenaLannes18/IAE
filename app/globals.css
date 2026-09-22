@@ -24,3 +24,62 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ------------------------------------------------------------------ */
+/* Tema da área administrativa — usa exatamente a paleta do site      */
+/* principal (navy #16243A, creme #F3F1EC, taupe #C7BFB3, etc).       */
+/* Escopado em .admin-shell para nunca vazar para o site público.     */
+/* ------------------------------------------------------------------ */
+.admin-shell {
+  --a-bg: #F3F1EC;
+  --a-sidebar-bg: #16243A;
+  --a-surface: #FFFFFF;
+  --a-surface-2: #F3F1EC;
+  --a-input-bg: #F3F1EC;
+  --a-text: #3A3733;
+  --a-muted: #6E6459;
+  --a-faint: #85796C;
+  --a-accent: #16243A;
+  --a-accent-hover: #1c2f4d;
+  --a-accent-contrast: #F3F1EC;
+  --a-danger: #dc2626;
+  --a-danger-hover: #b91c1c;
+  --a-danger-contrast: #ffffff;
+  --a-highlight-from: #16243A;
+  --a-highlight-to: #33496e;
+  --a-border: rgba(199, 191, 179, 0.6);
+
+  /* A sidebar tem fundo navy fixo nos dois temas (não inverte como o resto do
+     conteúdo), então seu texto usa tokens próprios em vez de --a-text/--a-muted/
+     --a-accent — que no modo claro viram cores escuras e ficariam invisíveis
+     sobre o navy. Não precisam mudar em [data-theme="dark"]. */
+  --a-sidebar-text: #F3F1EC;
+  --a-sidebar-muted: #C7BFB3;
+  --a-sidebar-faint: #9A9186;
+  --a-sidebar-active-bg: rgba(243, 241, 236, 0.12);
+  --a-sidebar-active-text: #F3F1EC;
+  --a-sidebar-hover-bg: rgba(243, 241, 236, 0.06);
+  --a-sidebar-badge-bg: rgba(243, 241, 236, 0.12);
+  --a-sidebar-avatar-bg: #F3F1EC;
+  --a-sidebar-avatar-text: #16243A;
+}
+
+.admin-shell[data-theme="dark"] {
+  --a-bg: #16243A;
+  --a-sidebar-bg: #101a2b;
+  --a-surface: #1c2c47;
+  --a-surface-2: #22314c;
+  --a-input-bg: #22314c;
+  --a-text: #F3F1EC;
+  --a-muted: #C7BFB3;
+  --a-faint: #7c8aa0;
+  --a-accent: #F3F1EC;
+  --a-accent-hover: #C7BFB3;
+  --a-accent-contrast: #16243A;
+  --a-danger: #f87171;
+  --a-danger-hover: #ef4444;
+  --a-danger-contrast: #16243A;
+  --a-highlight-from: #F3F1EC;
+  --a-highlight-to: #C7BFB3;
+  --a-border: rgba(243, 241, 236, 0.14);
+}

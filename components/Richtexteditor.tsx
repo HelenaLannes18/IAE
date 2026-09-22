@@ -30,7 +30,7 @@ function ToolbarButton({
             type="button"
             onClick={onClick}
             title={title}
-            className={`p-1.5 rounded transition-colors ${isActive ? 'bg-[#16243A] text-[#F3F1EC]' : 'hover:bg-[#C7BFB3]/40 text-[#3A3733]'}`}
+            className={`p-1.5 rounded-lg transition-colors ${isActive ? 'bg-[var(--a-accent)] text-[var(--a-accent-contrast)]' : 'hover:bg-[var(--a-text)]/10 text-[var(--a-muted)]'}`}
         >
             {children}
         </button>
@@ -50,7 +50,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
             }),
             Link.configure({
                 openOnClick: false,
-                HTMLAttributes: { class: 'text-[#16243A] underline' }
+                HTMLAttributes: { class: 'text-[var(--a-accent)] underline' }
             }),
             Placeholder.configure({
                 placeholder: placeholder || 'Escreva o seu artigo aqui...'
@@ -117,8 +117,8 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
     if (!editor) return null;
 
     return (
-        <div className="border border-[#C7BFB3] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#16243A]/20 focus-within:border-[#16243A] transition-all bg-white">
-            <div className="flex flex-wrap gap-1 border-b border-[#C7BFB3]/50 p-2 bg-[#F3F1EC]/50">
+        <div className="rounded-2xl overflow-hidden bg-[var(--a-input-bg)] focus-within:ring-2 focus-within:ring-[var(--a-accent)]/30 transition-all">
+            <div className="flex flex-wrap gap-1 p-2 bg-black/20">
                 <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive('bold')} title="Negrito">
                     <b className="font-serif text-sm px-1">B</b>
                 </ToolbarButton>
@@ -132,7 +132,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
                     <span className="line-through text-sm px-1">S</span>
                 </ToolbarButton>
 
-                <div className="w-px bg-[#C7BFB3]/60 mx-1" />
+                <div className="w-px bg-[var(--a-text)]/10 mx-1" />
 
                 <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} isActive={editor.isActive('heading', { level: 2 })} title="Título">
                     <span className="text-sm font-bold px-1">H2</span>
@@ -141,7 +141,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
                     <span className="text-sm font-bold px-1">H3</span>
                 </ToolbarButton>
 
-                <div className="w-px bg-[#C7BFB3]/60 mx-1" />
+                <div className="w-px bg-[var(--a-text)]/10 mx-1" />
 
                 <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} isActive={editor.isActive('bulletList')} title="Lista">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -153,7 +153,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
                     <span className="text-sm px-1">&ldquo;&rdquo;</span>
                 </ToolbarButton>
 
-                <div className="w-px bg-[#C7BFB3]/60 mx-1" />
+                <div className="w-px bg-[var(--a-text)]/10 mx-1" />
 
                 <ToolbarButton onClick={setLink} isActive={editor.isActive('link')} title="Link">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.5 1.5" /></svg>
@@ -172,7 +172,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
                     onChange={handleImageFileChange}
                 />
 
-                <div className="w-px bg-[#C7BFB3]/60 mx-1" />
+                <div className="w-px bg-[var(--a-text)]/10 mx-1" />
 
                 <ToolbarButton onClick={() => editor.chain().focus().undo().run()} title="Desfazer">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l-4-4m0 0l4-4m-4 4h11a4 4 0 010 8h-1" /></svg>
@@ -182,11 +182,11 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
                 </ToolbarButton>
             </div>
 
-            <EditorContent editor={editor} className="bg-[#F3F1EC]/30 focus-within:bg-white transition-colors" />
+            <EditorContent editor={editor} className="text-[var(--a-text)]" />
 
             <style jsx global>{`
-                .richtext-content h2 { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem; color: #16243A; }
-                .richtext-content h3 { font-size: 1.25rem; font-weight: 700; margin: 0.75rem 0 0.5rem; color: #16243A; }
+                .richtext-content h2 { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem; color: var(--a-text); }
+                .richtext-content h3 { font-size: 1.25rem; font-weight: 700; margin: 0.75rem 0 0.5rem; color: var(--a-text); }
                 .richtext-content p { margin: 0.5rem 0; line-height: 1.6; }
                 .richtext-content strong { font-weight: 700; }
                 .richtext-content em { font-style: italic; }
@@ -194,13 +194,13 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
                 .richtext-content s { text-decoration: line-through; }
                 .richtext-content ul { list-style: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
                 .richtext-content ol { list-style: decimal; padding-left: 1.5rem; margin: 0.5rem 0; }
-                .richtext-content blockquote { border-left: 3px solid #C7BFB3; padding-left: 1rem; margin: 0.75rem 0; color: #6b6b6b; font-style: italic; }
-                .richtext-content a { color: #16243A; text-decoration: underline; }
-                .richtext-content img { max-width: 100%; border-radius: 0.5rem; margin: 0.75rem 0; }
+                .richtext-content blockquote { border-left: 3px solid var(--a-accent); padding-left: 1rem; margin: 0.75rem 0; color: var(--a-muted); font-style: italic; }
+                .richtext-content a { color: var(--a-accent); text-decoration: underline; }
+                .richtext-content img { max-width: 100%; border-radius: 0.75rem; margin: 0.75rem 0; }
                 .richtext-content p.is-editor-empty:first-child::before {
                     content: attr(data-placeholder);
                     float: left;
-                    color: #9A9186;
+                    color: var(--a-faint);
                     pointer-events: none;
                     height: 0;
                 }

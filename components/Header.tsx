@@ -13,8 +13,7 @@ export default function Header() {
         { label: 'Programas', href: '/programas' },
         // { label: 'Sobre', href: '/sobre' },
         { label: 'Quem Somos', href: '/#quem-somos' },
-        { label: 'Programas Executivos', href: '/#programas-executivos' },
-        // { label: 'Noticias', href: '/#noticias' },
+        { label: 'Notícias', href: '/#noticias' },
         { label: 'Contato', href: '/#contato' }
     ];
 

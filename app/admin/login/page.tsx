@@ -38,19 +38,22 @@ export default function AdminLoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#16243A] flex items-center justify-center px-4">
-            <div className="w-full max-w-md">
+        <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+            <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-[var(--a-accent)]/10 blur-[100px] pointer-events-none" />
+            <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-[var(--a-highlight-to)]/10 blur-[100px] pointer-events-none" />
+
+            <div className="w-full max-w-md relative z-10">
                 <div className="text-center mb-8">
-                    <span className="text-3xl font-bold text-[#F3F1EC] tracking-widest">IAE<span className="text-[#9A9186]">.</span></span>
-                    <p className="text-[#C7BFB3] mt-2">Painel Administrativo</p>
+                    <span className="text-3xl font-extrabold text-[var(--a-text)] tracking-tight">IAE<span className="text-[var(--a-accent)]">.</span></span>
+                    <p className="text-[var(--a-muted)] mt-2 text-sm">Painel Administrativo</p>
                 </div>
 
-                <div className="bg-[#F3F1EC] rounded-2xl p-8 shadow-2xl">
-                    <h1 className="text-xl font-bold text-[#16243A] mb-6">Entrar</h1>
+                <div className="bg-[var(--a-surface)] rounded-[28px] p-8">
+                    <h1 className="text-xl font-bold text-[var(--a-text)] mb-6">Entrar</h1>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-bold text-[#3A3733] mb-2">E-mail</label>
+                            <label className="block text-sm font-medium text-[var(--a-muted)] mb-2">E-mail</label>
                             <input
                                 type="email"
                                 required
@@ -58,11 +61,11 @@ export default function AdminLoginPage() {
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 placeholder="seu@email.com"
                                 disabled={isSubmitting}
-                                className="w-full px-4 py-3 bg-white border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all disabled:opacity-60"
+                                className="w-full px-4 py-3 bg-[var(--a-input-bg)] border border-transparent rounded-2xl text-[var(--a-text)] placeholder:text-[var(--a-faint)] focus:outline-none focus:border-[var(--a-accent)]/40 transition-all disabled:opacity-60"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-[#3A3733] mb-2">Senha</label>
+                            <label className="block text-sm font-medium text-[var(--a-muted)] mb-2">Senha</label>
                             <input
                                 type="password"
                                 required
@@ -70,18 +73,18 @@ export default function AdminLoginPage() {
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 placeholder="••••••••"
                                 disabled={isSubmitting}
-                                className="w-full px-4 py-3 bg-white border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all disabled:opacity-60"
+                                className="w-full px-4 py-3 bg-[var(--a-input-bg)] border border-transparent rounded-2xl text-[var(--a-text)] placeholder:text-[var(--a-faint)] focus:outline-none focus:border-[var(--a-accent)]/40 transition-all disabled:opacity-60"
                             />
                         </div>
 
                         {error && (
-                            <p className="text-sm font-semibold text-red-600">{error}</p>
+                            <p className="text-sm font-semibold text-[var(--a-danger)]">{error}</p>
                         )}
 
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full bg-[#16243A] hover:bg-[#16243A]/90 text-[#F3F1EC] py-3 rounded-xl font-bold shadow-md transition-colors disabled:opacity-60"
+                            className="w-full bg-[var(--a-accent)] hover:bg-[var(--a-accent-hover)] text-[var(--a-accent-contrast)] py-3 rounded-full font-bold transition-colors disabled:opacity-60"
                         >
                             {isSubmitting ? 'Entrando...' : 'Entrar'}
                         </button>

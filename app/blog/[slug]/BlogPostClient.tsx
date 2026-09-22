@@ -47,6 +47,32 @@ export default function BlogPostClient() {
         return `${Math.ceil(wordCount / 200)} min de leitura`;
     };
 
+    // Compartilha o link do artigo (usa o menu nativo de compartilhamento quando disponível,
+    // ou copia o link para a área de transferência como alternativa)
+    const handleShare = async () => {
+        const shareData = {
+            title: article?.title,
+            text: article?.title,
+            url: typeof window !== 'undefined' ? window.location.href : ''
+        };
+
+        if (typeof navigator !== 'undefined' && navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch {
+                // Usuário cancelou o compartilhamento — não faz nada
+            }
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(shareData.url);
+            alert('Link do artigo copiado!');
+        } catch {
+            alert('Não foi possível copiar o link. Copie da barra de endereço.');
+        }
+    };
+
     useEffect(() => {
         // Busca o artigo atual e todos os artigos para o carrossel
         const fetchData = async () => {
@@ -138,6 +164,16 @@ export default function BlogPostClient() {
                         <span>{article.category}</span>
                         <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
                         <span>{calculateReadTime(article.content)}</span>
+                        <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
+                        <button
+                            type="button"
+                            onClick={handleShare}
+                            className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 transition-colors normal-case tracking-normal font-semibold"
+                            title="Compartilhar artigo"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342a3 3 0 100-2.684m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                            Compartilhar
+                        </button>
                     </motion.div>
 
                     {/* @ts-ignore */}

@@ -3,13 +3,47 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import {
+    Plus, Pencil, Trash2, ArrowLeft, Calendar, CheckCircle2,
+    Users as UsersIcon, ShieldCheck, Newspaper, Mic, Hash,
+    Inbox, CalendarClock, TrendingUp
+} from 'lucide-react';
 import RichTextEditor from '@/components/Richtexteditor';
 import ImageUrlInput from '@/components/admin/ImageUrlInput';
+import AdminSidebar, { AdminView } from '@/components/admin/AdminSidebar';
+import AdminHeader from '@/components/admin/AdminHeader';
+import ActivityChart from '@/components/admin/ActivityChart';
+import { ToastProvider, useToast } from '@/components/admin/Toast';
+import { ConfirmProvider, useConfirm } from '@/components/admin/ConfirmDialog';
+import { StatCard, SearchInput, StatusBadge, EmptyState, Avatar, ThumbBox, IconActionButton, ListShell, TableSkeleton, CardSkeleton } from '@/components/admin/ui';
 
+export default function AdminBlogAreaPage() {
+    return (
+        <ToastProvider>
+            <ConfirmProvider>
+                <AdminBlogArea />
+            </ConfirmProvider>
+        </ToastProvider>
+    );
+}
 
-export default function AdminBlogArea() {
+function timeAgo(dateString: string) {
+    const minutes = Math.floor((Date.now() - new Date(dateString).getTime()) / 60000);
+    if (minutes < 1) return 'agora mesmo';
+    if (minutes < 60) return `há ${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `há ${hours}h`;
+    const days = Math.floor(hours / 24);
+    return `há ${days}d`;
+}
+
+function AdminBlogArea() {
     const router = useRouter();
-    const [currentView, setCurrentView] = useState<'dashboard' | 'list' | 'create' | 'users' | 'createUser' | 'leads' | 'agenda' | 'createAgenda'>('dashboard');
+    const toast = useToast();
+    const confirm = useConfirm();
+
+    const [currentView, setCurrentView] = useState<AdminView>('dashboard');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const [posts, setPosts] = useState<any[]>([]);
     const [users, setUsers] = useState<any[]>([]);
@@ -70,8 +104,11 @@ export default function AdminBlogArea() {
     const [isSubmittingAgenda, setIsSubmittingAgenda] = useState(false);
     const [editingAgendaId, setEditingAgendaId] = useState<number | null>(null);
 
-    const fetchData = async () => {
-        setIsLoading(true);
+    // silent=true é usado pela atualização automática em segundo plano: não mostra o
+    // esqueleto de carregamento nem um toast de erro a cada tentativa (evita ruído
+    // caso uma única requisição periódica falhe).
+    const fetchData = async (silent = false) => {
+        if (!silent) setIsLoading(true);
         try {
             const [resPosts, resUsers, resLeads, resAgenda] = await Promise.all([
                 fetch('/api/posts'),
@@ -86,14 +123,26 @@ export default function AdminBlogArea() {
             if (resAgenda.ok) setAgendaItems(await resAgenda.json());
         } catch (error) {
             console.error("Erro ao carregar os dados:", error);
+            if (!silent) toast.error("Erro ao carregar os dados do painel.");
         } finally {
-            setIsLoading(false);
+            if (!silent) setIsLoading(false);
         }
     };
 
     useEffect(() => {
         fetchData();
+        // Mantém os dados (principalmente os contatos, para o sino de notificações) em dia
+        // mesmo sem o admin recarregar a página manualmente.
+        const interval = setInterval(() => fetchData(true), 45000);
+        return () => clearInterval(interval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Troca de tela e fecha o menu mobile, se estiver aberto
+    const navigateTo = (view: AdminView) => {
+        setCurrentView(view);
+        setIsSidebarOpen(false);
+    };
 
     const handleLogout = async () => {
         try {
@@ -144,7 +193,7 @@ export default function AdminBlogArea() {
 
     // Cria um autor "rapido" (so nome + foto, sem login) e ja marca ele no artigo
     const handleCreateQuickAuthor = async () => {
-        if (!newAuthorName.trim()) return alert("Digite o nome do autor!");
+        if (!newAuthorName.trim()) return toast.error("Digite o nome do autor!");
 
         setIsCreatingAuthor(true);
         try {
@@ -168,12 +217,14 @@ export default function AdminBlogArea() {
                 setNewAuthorImageUrl('');
                 setNewAuthorBio('');
                 setShowNewAuthorForm(false);
+                toast.success("Autor adicionado com sucesso!");
             } else {
                 const data = await response.json().catch(() => ({}));
-                alert(data.error || "Erro ao criar autor.");
+                toast.error(data.error || "Erro ao criar autor.");
             }
         } catch (error) {
             console.error("Erro na requisicao:", error);
+            toast.error("Erro na requisição ao criar autor.");
         } finally {
             setIsCreatingAuthor(false);
         }
@@ -182,8 +233,8 @@ export default function AdminBlogArea() {
     // Cria OU atualiza um artigo, dependendo se estamos editando
     const handleCreatePost = async (e: React.FormEvent, status: string) => {
         e.preventDefault();
-        if (!formData.title) return alert("O título é obrigatório!");
-        if (formData.authorIds.length === 0) return alert("Selecione pelo menos um autor!");
+        if (!formData.title) return toast.error("O título é obrigatório!");
+        if (formData.authorIds.length === 0) return toast.error("Selecione pelo menos um autor!");
 
         setIsSubmitting(true);
         try {
@@ -204,30 +255,39 @@ export default function AdminBlogArea() {
                 await fetchData();
                 resetPostForm();
                 setCurrentView('list');
+                toast.success(isEditing ? "Artigo atualizado com sucesso!" : "Artigo salvo com sucesso!");
             } else {
                 const data = await response.json().catch(() => ({}));
-                alert(data.error || "Erro ao salvar artigo.");
+                toast.error(data.error || "Erro ao salvar artigo.");
             }
         } catch (error) {
             console.error("Erro na requisição:", error);
+            toast.error("Erro na requisição ao salvar artigo.");
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDeletePost = async (post: any) => {
-        if (!confirm(`Tem certeza que deseja excluir o artigo "${post.title}"? Essa ação não pode ser desfeita.`)) return;
+        const ok = await confirm({
+            title: 'Excluir artigo',
+            message: `Tem certeza que deseja excluir o artigo "${post.title}"? Essa ação não pode ser desfeita.`,
+            confirmLabel: 'Excluir',
+        });
+        if (!ok) return;
 
         try {
             const response = await fetch(`/api/posts/${post.id}`, { method: 'DELETE' });
             if (response.ok) {
                 setPosts((prev) => prev.filter((p) => p.id !== post.id));
+                toast.success("Artigo excluído.");
             } else {
                 const data = await response.json().catch(() => ({}));
-                alert(data.error || "Erro ao excluir artigo.");
+                toast.error(data.error || "Erro ao excluir artigo.");
             }
         } catch (error) {
             console.error("Erro na requisição:", error);
+            toast.error("Erro na requisição ao excluir artigo.");
         }
     };
 
@@ -260,11 +320,11 @@ export default function AdminBlogArea() {
     // Cria OU atualiza um usuário, dependendo se estamos editando
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!userFormData.name || !userFormData.email) return alert("Nome e E-mail são obrigatórios!");
+        if (!userFormData.name || !userFormData.email) return toast.error("Nome e E-mail são obrigatórios!");
 
         const isEditing = editingUserId !== null;
-        if (!isEditing && !userFormData.password) return alert("A senha é obrigatória para criar um usuário!");
-        if (userFormData.password && userFormData.password.length < 6) return alert("A senha deve ter pelo menos 6 caracteres!");
+        if (!isEditing && !userFormData.password) return toast.error("A senha é obrigatória para criar um usuário!");
+        if (userFormData.password && userFormData.password.length < 6) return toast.error("A senha deve ter pelo menos 6 caracteres!");
 
         setIsSubmittingUser(true);
         try {
@@ -286,48 +346,64 @@ export default function AdminBlogArea() {
                 await fetchData();
                 resetUserForm();
                 setCurrentView('users');
+                toast.success(isEditing ? "Usuário atualizado com sucesso!" : "Usuário criado com sucesso!");
             } else {
                 const data = await response.json().catch(() => ({}));
-                alert(data.error || "Erro ao salvar usuário.");
+                toast.error(data.error || "Erro ao salvar usuário.");
             }
         } catch (error) {
             console.error("Erro na requisição:", error);
+            toast.error("Erro na requisição ao salvar usuário.");
         } finally {
             setIsSubmittingUser(false);
         }
     };
 
     const handleDeleteUser = async (user: any) => {
-        if (!confirm(`Tem certeza que deseja excluir o usuário "${user.name}"? Essa ação não pode ser desfeita.`)) return;
+        const ok = await confirm({
+            title: 'Excluir usuário',
+            message: `Tem certeza que deseja excluir o usuário "${user.name}"? Essa ação não pode ser desfeita.`,
+            confirmLabel: 'Excluir',
+        });
+        if (!ok) return;
 
         try {
             const response = await fetch(`/api/users/${user.id}`, { method: 'DELETE' });
             if (response.ok) {
                 setUsers((prev) => prev.filter((u) => u.id !== user.id));
+                toast.success("Usuário excluído.");
             } else {
                 const data = await response.json().catch(() => ({}));
-                alert(data.error || "Erro ao excluir usuário.");
+                toast.error(data.error || "Erro ao excluir usuário.");
             }
         } catch (error) {
             console.error("Erro na requisição:", error);
+            toast.error("Erro na requisição ao excluir usuário.");
         }
     };
 
     // ---------- CONTATOS (LEADS) ----------
 
     const handleDeleteLead = async (lead: any) => {
-        if (!confirm(`Tem certeza que deseja excluir o contato de "${lead.name}"? Essa ação não pode ser desfeita.`)) return;
+        const ok = await confirm({
+            title: 'Excluir contato',
+            message: `Tem certeza que deseja excluir o contato de "${lead.name}"? Essa ação não pode ser desfeita.`,
+            confirmLabel: 'Excluir',
+        });
+        if (!ok) return;
 
         try {
             const response = await fetch(`/api/leads/${lead.id}`, { method: 'DELETE' });
             if (response.ok) {
                 setLeads((prev) => prev.filter((l) => l.id !== lead.id));
+                toast.success("Contato excluído.");
             } else {
                 const data = await response.json().catch(() => ({}));
-                alert(data.error || "Erro ao excluir contato.");
+                toast.error(data.error || "Erro ao excluir contato.");
             }
         } catch (error) {
             console.error("Erro na requisição:", error);
+            toast.error("Erro na requisição ao excluir contato.");
         }
     };
 
@@ -371,7 +447,7 @@ export default function AdminBlogArea() {
     const handleCreateAgenda = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!agendaFormData.category || !agendaFormData.title || !agendaFormData.image || !agendaFormData.speakers) {
-            return alert("Categoria, título, imagem e palestrantes são obrigatórios!");
+            return toast.error("Categoria, título, imagem e palestrantes são obrigatórios!");
         }
 
         setIsSubmittingAgenda(true);
@@ -390,30 +466,39 @@ export default function AdminBlogArea() {
                 await fetchData();
                 resetAgendaForm();
                 setCurrentView('agenda');
+                toast.success(isEditing ? "Evento atualizado com sucesso!" : "Evento criado com sucesso!");
             } else {
                 const data = await response.json().catch(() => ({}));
-                alert(data.error || "Erro ao salvar evento.");
+                toast.error(data.error || "Erro ao salvar evento.");
             }
         } catch (error) {
             console.error("Erro na requisição:", error);
+            toast.error("Erro na requisição ao salvar evento.");
         } finally {
             setIsSubmittingAgenda(false);
         }
     };
 
     const handleDeleteAgenda = async (item: any) => {
-        if (!confirm(`Tem certeza que deseja excluir o evento "${item.title}"? Essa ação não pode ser desfeita.`)) return;
+        const ok = await confirm({
+            title: 'Excluir evento',
+            message: `Tem certeza que deseja excluir o evento "${item.title}"? Essa ação não pode ser desfeita.`,
+            confirmLabel: 'Excluir',
+        });
+        if (!ok) return;
 
         try {
             const response = await fetch(`/api/agenda/${item.id}`, { method: 'DELETE' });
             if (response.ok) {
                 setAgendaItems((prev) => prev.filter((a) => a.id !== item.id));
+                toast.success("Evento excluído.");
             } else {
                 const data = await response.json().catch(() => ({}));
-                alert(data.error || "Erro ao excluir evento.");
+                toast.error(data.error || "Erro ao excluir evento.");
             }
         } catch (error) {
             console.error("Erro na requisição:", error);
+            toast.error("Erro na requisição ao excluir evento.");
         }
     };
 
@@ -432,6 +517,50 @@ export default function AdminBlogArea() {
     const publishedPosts = posts.filter(p => p.status === 'Publicado').length;
     const totalUsers = users.length;
     const activeUsers = users.filter(u => u.status === 'Ativo').length;
+
+    // Gráfico de atividade do dashboard: contatos recebidos por dia, no período selecionado
+    const [chartRangeDays, setChartRangeDays] = useState<7 | 30>(7);
+
+    const leadsChartData = useMemo(() => {
+        const days: { label: string; value: number }[] = [];
+        const dayFormat = chartRangeDays === 7
+            ? { weekday: 'short' as const }
+            : { day: '2-digit' as const, month: '2-digit' as const };
+
+        for (let i = chartRangeDays - 1; i >= 0; i--) {
+            const date = new Date();
+            date.setHours(0, 0, 0, 0);
+            date.setDate(date.getDate() - i);
+            const nextDate = new Date(date);
+            nextDate.setDate(date.getDate() + 1);
+
+            const count = leads.filter((l) => {
+                const created = new Date(l.createdAt);
+                return created >= date && created < nextDate;
+            }).length;
+
+            const label = date.toLocaleDateString('pt-BR', dayFormat).replace('.', '');
+            days.push({ label, value: count });
+        }
+        return days;
+    }, [leads, chartRangeDays]);
+
+    const leadsInRange = useMemo(() => leadsChartData.reduce((sum, d) => sum + d.value, 0), [leadsChartData]);
+
+    // Próximos eventos ativos da agenda, ordenados pela ordem de exibição definida no admin
+    const upcomingAgenda = useMemo(() => {
+        return [...agendaItems]
+            .filter((a) => a.status === 'Ativo')
+            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+            .slice(0, 4);
+    }, [agendaItems]);
+
+    // Contatos mais recentes, para o painel lateral do dashboard
+    const recentLeadsPanel = useMemo(() => {
+        return [...leads]
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .slice(0, 4);
+    }, [leads]);
 
     // Categorias já usadas em artigos existentes, combinadas com as padrão (sem duplicatas)
     const categoryOptions = useMemo(() => {
@@ -501,139 +630,163 @@ export default function AdminBlogArea() {
         });
     };
 
+    const inputCls = "w-full px-4 py-3 bg-[var(--a-input-bg)] border border-transparent rounded-2xl text-[var(--a-text)] placeholder:text-[var(--a-faint)] focus:outline-none focus:border-[var(--a-accent)]/40 transition-all";
+    const labelCls = "block text-sm font-medium text-[var(--a-muted)] mb-2";
+
     return (
-        <div className="min-h-screen bg-[#F3F1EC] flex flex-col md:flex-row font-sans text-[#3A3733]">
-            {/* --- SIDEBAR --- */}
-            <aside className="w-full md:w-64 bg-[#16243A] text-[#C7BFB3] flex flex-col shadow-2xl z-20 shrink-0">
-                <div className="h-20 flex items-center px-8 border-b border-[#F3F1EC]/10">
-                    <span className="text-2xl font-bold text-[#F3F1EC] tracking-widest">IAE<span className="text-[#9A9186]">.</span></span>
-                </div>
-
-                <nav className="flex-1 py-8 px-4 space-y-2">
-                    <button onClick={() => setCurrentView('dashboard')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left ${currentView === 'dashboard' ? 'bg-[#F3F1EC]/10 text-[#F3F1EC] font-semibold border border-[#F3F1EC]/20' : 'text-[#C7BFB3] hover:bg-[#F3F1EC]/5 hover:text-[#F3F1EC]'}`}>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                        Dashboard
-                    </button>
-                    <button onClick={() => setCurrentView('list')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left ${(currentView === 'list' || currentView === 'create') ? 'bg-[#F3F1EC]/10 text-[#F3F1EC] font-semibold border border-[#F3F1EC]/20' : 'text-[#C7BFB3] hover:bg-[#F3F1EC]/5 hover:text-[#F3F1EC]'}`}>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H14" /></svg>
-                        Gestão do Blog
-                    </button>
-                    <button onClick={() => setCurrentView('users')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left ${(currentView === 'users' || currentView === 'createUser') ? 'bg-[#F3F1EC]/10 text-[#F3F1EC] font-semibold border border-[#F3F1EC]/20' : 'text-[#C7BFB3] hover:bg-[#F3F1EC]/5 hover:text-[#F3F1EC]'}`}>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                        Usuários
-                    </button>
-                    <button onClick={() => setCurrentView('leads')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left ${currentView === 'leads' ? 'bg-[#F3F1EC]/10 text-[#F3F1EC] font-semibold border border-[#F3F1EC]/20' : 'text-[#C7BFB3] hover:bg-[#F3F1EC]/5 hover:text-[#F3F1EC]'}`}>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                        Contatos
-                        {leads.length > 0 && (
-                            <span className="ml-auto bg-[#F3F1EC]/10 text-[#F3F1EC] text-xs font-bold px-2 py-0.5 rounded-full border border-[#F3F1EC]/20">{leads.length}</span>
-                        )}
-                    </button>
-                    <button onClick={() => setCurrentView('agenda')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left ${(currentView === 'agenda' || currentView === 'createAgenda') ? 'bg-[#F3F1EC]/10 text-[#F3F1EC] font-semibold border border-[#F3F1EC]/20' : 'text-[#C7BFB3] hover:bg-[#F3F1EC]/5 hover:text-[#F3F1EC]'}`}>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        Agenda
-                    </button>
-                </nav>
-
-                <div className="p-4 border-t border-[#F3F1EC]/10">
-                    <div className="flex items-center gap-3 px-4 py-3">
-                        <div className="w-8 h-8 rounded-full bg-[#9A9186] flex items-center justify-center text-[#16243A] font-bold text-sm">A</div>
-                        <div className="text-sm">
-                            <p className="text-[#F3F1EC] font-semibold">Admin</p>
-                            <p className="text-xs text-[#C7BFB3]">admin@iae.com.br</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-[#C7BFB3] hover:bg-[#F3F1EC]/5 hover:text-[#F3F1EC] transition-colors text-left"
-                    >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                        Sair
-                    </button>
-                </div>
-            </aside>
+        <div className="min-h-screen flex flex-col md:flex-row">
+            <AdminSidebar
+                currentView={currentView}
+                onNavigate={navigateTo}
+                onLogout={handleLogout}
+                leadsCount={leads.length}
+                isOpen={isSidebarOpen}
+                onClose={() => setIsSidebarOpen(false)}
+            />
 
             {/* --- ÁREA PRINCIPAL --- */}
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
-                <header className="h-20 bg-[#F3F1EC] border-b border-[#C7BFB3]/50 flex items-center justify-between px-8 shrink-0">
-                    <h1 className="text-xl font-bold text-[#16243A]">{getPageTitle()}</h1>
-                    <div className="flex items-center gap-4">
-                        <button className="relative text-[#9A9186] hover:text-[#16243A] transition-colors">
-                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#F3F1EC]"></span>
-                        </button>
-                    </div>
-                </header>
+                <AdminHeader title={getPageTitle()} onMenuClick={() => setIsSidebarOpen(true)} leads={leads} onViewAllLeads={() => navigateTo('leads')} />
 
-                <div className="flex-1 overflow-auto p-8 relative">
+                <div className="flex-1 overflow-auto p-4 md:p-8 relative">
                     {isLoading ? (
-                        <div className="flex justify-center items-center h-full">
-                            <p className="text-[#9A9186] font-bold animate-pulse">Carregando dados reais...</p>
+                        <div className="max-w-6xl mx-auto space-y-6">
+                            <div className="h-44 rounded-[28px] bg-[var(--a-surface)] border border-[var(--a-border)] animate-pulse" />
+                            <CardSkeleton />
+                            <TableSkeleton />
                         </div>
                     ) : (
                         <>
                             {/* TELA 0: DASHBOARD */}
                             {currentView === 'dashboard' && (
-                                <motion.div key="dashboard" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="max-w-6xl mx-auto space-y-8">
-                                    <div className="bg-[#16243A] rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between shadow-lg relative overflow-hidden">
-                                        <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-[#C7BFB3]/10 blur-3xl pointer-events-none"></div>
-                                        <div className="absolute -left-10 -bottom-10 w-40 h-40 rounded-full bg-blue-500/10 blur-2xl pointer-events-none"></div>
-                                        <div className="relative z-10 text-center md:text-left">
-                                            <h2 className="text-2xl md:text-3xl font-bold text-[#F3F1EC] mb-2">Bem-vindo de volta, Admin! 👋</h2>
-                                            <p className="text-[#C7BFB3]">Aqui está o que está acontecendo na sua plataforma hoje.</p>
+                                <motion.div key="dashboard" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="max-w-7xl mx-auto space-y-6">
+                                    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                                        <div>
+                                            <h2 className="text-2xl md:text-3xl font-extrabold text-[var(--a-text)]">Visão geral</h2>
+                                            <p className="text-sm text-[var(--a-muted)] mt-1">Artigos, usuários e contatos em um só lugar.</p>
                                         </div>
-                                        <div className="mt-6 md:mt-0 relative z-10">
-                                            <button onClick={handleStartCreatePost} className="bg-[#F3F1EC] hover:bg-white text-[#16243A] px-6 py-3 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2">
-                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                                                Novo Artigo
-                                            </button>
-                                        </div>
+                                        <button onClick={handleStartCreatePost} className="bg-[var(--a-accent)] hover:bg-[var(--a-accent-hover)] text-[var(--a-accent-contrast)] px-6 py-3 rounded-full font-bold transition-colors flex items-center gap-2 shrink-0">
+                                            <Plus className="w-5 h-5" />
+                                            Novo Artigo
+                                        </button>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                        <div className="bg-white border border-[#C7BFB3]/60 rounded-2xl p-6 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
-                                            <div className="w-14 h-14 rounded-xl bg-[#F3F1EC] flex items-center justify-center text-[#16243A]"><svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H14" /></svg></div>
-                                            <div><p className="text-sm font-bold text-[#9A9186] uppercase tracking-wide">Total de Artigos</p><p className="text-3xl font-extrabold text-[#3A3733] mt-1">{totalPosts}</p></div>
-                                        </div>
-                                        <div className="bg-white border border-[#C7BFB3]/60 rounded-2xl p-6 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
-                                            <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600"><svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-                                            <div><p className="text-sm font-bold text-[#9A9186] uppercase tracking-wide">Publicados</p><p className="text-3xl font-extrabold text-[#3A3733] mt-1">{publishedPosts}</p></div>
-                                        </div>
-                                        <div className="bg-white border border-[#C7BFB3]/60 rounded-2xl p-6 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
-                                            <div className="w-14 h-14 rounded-xl bg-[#F3F1EC] flex items-center justify-center text-[#16243A]"><svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg></div>
-                                            <div><p className="text-sm font-bold text-[#9A9186] uppercase tracking-wide">Usuários</p><p className="text-3xl font-extrabold text-[#3A3733] mt-1">{totalUsers}</p></div>
-                                        </div>
-                                        <div className="bg-white border border-[#C7BFB3]/60 rounded-2xl p-6 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
-                                            <div className="w-14 h-14 rounded-xl bg-green-50 flex items-center justify-center text-green-600"><svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-                                            <div><p className="text-sm font-bold text-[#9A9186] uppercase tracking-wide">Usuários Ativos</p><p className="text-3xl font-extrabold text-[#3A3733] mt-1">{activeUsers}</p></div>
-                                        </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <StatCard icon={Newspaper} label="Total de artigos" value={totalPosts} />
+                                        <StatCard icon={CheckCircle2} label="Publicados" value={publishedPosts} />
+                                        <StatCard icon={UsersIcon} label="Usuários" value={totalUsers} />
+                                        <StatCard icon={ShieldCheck} label="Usuários ativos" value={activeUsers} variant="highlight" />
                                     </div>
 
-                                    <div className="bg-white border border-[#C7BFB3]/60 rounded-2xl shadow-sm overflow-hidden">
-                                        <div className="px-6 py-5 border-b border-[#C7BFB3]/50 flex justify-between items-center bg-[#F3F1EC]/30">
-                                            <h3 className="font-bold text-[#16243A] text-lg">Artigos Recentes</h3>
-                                            <button onClick={() => setCurrentView('list')} className="text-sm text-[#9A9186] hover:text-[#16243A] font-semibold transition-colors">Ver todos &rarr;</button>
-                                        </div>
-                                        <div className="divide-y divide-[#C7BFB3]/30">
-                                            {posts.length === 0 ? (
-                                                <p className="p-6 text-[#9A9186] text-center">Nenhum artigo encontrado.</p>
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                        {/* Gráfico de atividade: contatos recebidos no período */}
+                                        <div className="lg:col-span-2 bg-[var(--a-surface)] border border-[var(--a-border)] rounded-[28px] p-6 md:p-8">
+                                            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                                                <div>
+                                                    <h3 className="font-bold text-[var(--a-text)] text-xl">Contatos recebidos</h3>
+                                                    <p className="text-sm text-[var(--a-muted)] mt-1">
+                                                        <span className="font-bold text-[var(--a-text)]">{leadsInRange}</span> nos últimos {chartRangeDays} dias
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-1 bg-[var(--a-surface-2)] rounded-full p-1">
+                                                    <button
+                                                        onClick={() => setChartRangeDays(7)}
+                                                        className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors ${chartRangeDays === 7 ? 'bg-[var(--a-accent)] text-[var(--a-accent-contrast)]' : 'text-[var(--a-muted)] hover:text-[var(--a-text)]'}`}
+                                                    >
+                                                        7 dias
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setChartRangeDays(30)}
+                                                        className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors ${chartRangeDays === 30 ? 'bg-[var(--a-accent)] text-[var(--a-accent-contrast)]' : 'text-[var(--a-muted)] hover:text-[var(--a-text)]'}`}
+                                                    >
+                                                        30 dias
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {leadsInRange === 0 ? (
+                                                <EmptyState icon={TrendingUp} title="Nenhum contato no período." description="Assim que chegarem novos contatos pelo site, eles aparecem aqui." />
                                             ) : (
-                                                posts.slice(0, 3).map((post) => (
-                                                    <div key={post.id} className="p-6 flex items-center justify-between hover:bg-[#F3F1EC]/40 transition-colors">
-                                                        <div>
-                                                            <p className="font-semibold text-[#3A3733] mb-1">{post.title}</p>
-                                                            <div className="flex gap-4 text-sm text-[#9A9186]">
-                                                                <span className="flex items-center gap-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>{post.category}</span>
-                                                                <span className="flex items-center gap-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>{formatDate(post.createdAt)}</span>
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${post.status === 'Publicado' ? 'bg-[#16243A]/10 text-[#16243A]' : 'bg-[#C7BFB3]/30 text-[#3A3733]'}`}>{post.status}</span>
-                                                        </div>
-                                                    </div>
-                                                ))
+                                                <ActivityChart points={leadsChartData} />
                                             )}
                                         </div>
+
+                                        {/* Coluna lateral: próximos eventos + contatos recentes */}
+                                        <div className="space-y-4">
+                                            <div className="bg-[var(--a-surface)] border border-[var(--a-border)] rounded-[28px] p-6">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <h3 className="font-bold text-[var(--a-text)] text-sm">Próximos eventos</h3>
+                                                    <button onClick={() => navigateTo('agenda')} className="text-xs text-[var(--a-muted)] hover:text-[var(--a-accent)] font-semibold transition-colors">Ver todos</button>
+                                                </div>
+                                                {upcomingAgenda.length === 0 ? (
+                                                    <p className="text-sm text-[var(--a-muted)]">Nenhum evento ativo no momento.</p>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {upcomingAgenda.map((item) => (
+                                                            <div key={item.id} className="flex items-center gap-3">
+                                                                <ThumbBox src={item.image} />
+                                                                <div className="min-w-0 flex-1">
+                                                                    <p className="text-sm font-semibold text-[var(--a-text)] truncate">{item.title}</p>
+                                                                    <p className="text-xs text-[var(--a-muted)] truncate flex items-center gap-1"><CalendarClock className="w-3 h-3 shrink-0" />{item.category}</p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="bg-[var(--a-surface)] border border-[var(--a-border)] rounded-[28px] p-6">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <h3 className="font-bold text-[var(--a-text)] text-sm">Contatos recentes</h3>
+                                                    <button onClick={() => navigateTo('leads')} className="text-xs text-[var(--a-muted)] hover:text-[var(--a-accent)] font-semibold transition-colors">Ver todos</button>
+                                                </div>
+                                                {recentLeadsPanel.length === 0 ? (
+                                                    <p className="text-sm text-[var(--a-muted)]">Nenhum contato recebido ainda.</p>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {recentLeadsPanel.map((lead) => (
+                                                            <div key={lead.id} className="flex items-center gap-3">
+                                                                <div className="w-9 h-9 rounded-full bg-[var(--a-surface-2)] flex items-center justify-center text-[var(--a-accent)] shrink-0">
+                                                                    <Inbox className="w-4 h-4" />
+                                                                </div>
+                                                                <div className="min-w-0 flex-1">
+                                                                    <p className="text-sm font-semibold text-[var(--a-text)] truncate">{lead.name || lead.email}</p>
+                                                                    <p className="text-xs text-[var(--a-muted)] truncate">{timeAgo(lead.createdAt)}</p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between items-center mb-4 px-1">
+                                            <h3 className="font-bold text-[var(--a-text)] text-xl">Artigos recentes</h3>
+                                            <button onClick={() => navigateTo('list')} className="text-sm text-[var(--a-muted)] hover:text-[var(--a-accent)] font-semibold transition-colors">Ver todos &rarr;</button>
+                                        </div>
+                                        {posts.length === 0 ? (
+                                            <div className="bg-[var(--a-surface-2)] rounded-[28px]">
+                                                <EmptyState icon={Newspaper} title="Nenhum artigo encontrado." description="Crie o seu primeiro artigo para vê-lo listado aqui." />
+                                            </div>
+                                        ) : (
+                                            <ListShell>
+                                                {posts.slice(0, 3).map((post) => (
+                                                    <div key={post.id} className="rounded-2xl bg-[var(--a-surface)] border border-[var(--a-border)] px-5 py-4 flex items-center gap-4">
+                                                        <ThumbBox src={post.imageUrl} />
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="font-semibold text-[var(--a-text)] truncate">{post.title}</p>
+                                                            <div className="flex items-center gap-2 mt-1 text-xs text-[var(--a-muted)]">
+                                                                <span>{post.category}</span>
+                                                                <span className="w-1 h-1 rounded-full bg-[var(--a-faint)]" />
+                                                                <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{formatDate(post.createdAt)}</span>
+                                                            </div>
+                                                        </div>
+                                                        <StatusBadge status={post.status} />
+                                                    </div>
+                                                ))}
+                                            </ListShell>
+                                        )}
                                     </div>
                                 </motion.div>
                             )}
@@ -641,114 +794,75 @@ export default function AdminBlogArea() {
                             {/* TELA 1: LISTA DE ARTIGOS */}
                             {currentView === 'list' && (
                                 <motion.div key="list" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="max-w-6xl mx-auto">
-                                    <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                                        <div className="relative w-full sm:w-96">
-                                            <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9186]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                                            <input
-                                                type="text"
-                                                value={postSearch}
-                                                onChange={(e) => setPostSearch(e.target.value)}
-                                                placeholder="Buscar artigos..."
-                                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all shadow-sm"
-                                            />
-                                        </div>
-                                        <button onClick={handleStartCreatePost} className="bg-[#16243A] hover:bg-[#16243A]/90 text-[#F3F1EC] px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg shadow-[#16243A]/20 transition-all w-full sm:w-auto justify-center">
-                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                                            Criar Novo Artigo
+                                    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                                        <SearchInput value={postSearch} onChange={setPostSearch} placeholder="Buscar artigos..." />
+                                        <button onClick={handleStartCreatePost} className="bg-[var(--a-accent)] hover:bg-[var(--a-accent-hover)] text-[var(--a-accent-contrast)] px-6 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all w-full sm:w-auto justify-center">
+                                            <Plus className="w-5 h-5" />
+                                            Criar novo artigo
                                         </button>
                                     </div>
 
-                                    <div className="bg-white border border-[#C7BFB3]/60 rounded-2xl shadow-sm overflow-hidden">
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full text-left border-collapse">
-                                                <thead>
-                                                    <tr className="bg-[#F3F1EC]/50 border-b border-[#C7BFB3]/50 text-xs uppercase tracking-wider text-[#9A9186] font-semibold">
-                                                        <th className="px-6 py-4">Título</th>
-                                                        <th className="px-6 py-4">Categoria</th>
-                                                        <th className="px-6 py-4">Autores</th>
-                                                        <th className="px-6 py-4">Data</th>
-                                                        <th className="px-6 py-4">Status</th>
-                                                        <th className="px-6 py-4 text-right">Ações</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-[#C7BFB3]/30">
-                                                    {filteredPosts.length === 0 ? (
-                                                        <tr><td colSpan={6} className="px-6 py-8 text-center text-[#9A9186]">
-                                                            {postSearch ? 'Nenhum artigo corresponde à busca.' : 'Nenhum artigo encontrado. Crie o seu primeiro!'}
-                                                        </td></tr>
-                                                    ) : (
-                                                        filteredPosts.map((post) => (
-                                                            <tr key={post.id} className="hover:bg-[#F3F1EC]/60 transition-colors">
-                                                                <td className="px-6 py-4">
-                                                                    <div className="flex items-center gap-3">
-                                                                        {post.imageUrl ? (
-                                                                            // eslint-disable-next-line @next/next/no-img-element
-                                                                            <img src={post.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover border border-[#C7BFB3]/60 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
-                                                                        ) : (
-                                                                            <div className="w-10 h-10 rounded-lg bg-[#F3F1EC] border border-[#C7BFB3]/60 shrink-0" />
-                                                                        )}
-                                                                        <p className="font-semibold text-[#3A3733] truncate max-w-xs">{post.title}</p>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="px-6 py-4 text-sm text-[#3A3733]/80">{post.category}</td>
-                                                                <td className="px-6 py-4">
-                                                                    {post.authors && post.authors.length > 0 ? (
-                                                                        <div className="flex items-center">
-                                                                            <div className="flex -space-x-2">
-                                                                                {post.authors.map((a: any) => (
-                                                                                    a.imageUrl ? (
-                                                                                        // eslint-disable-next-line @next/next/no-img-element
-                                                                                        <img key={a.id} src={a.imageUrl} alt={a.name} title={a.name} className="w-7 h-7 rounded-full object-cover border-2 border-white shadow-sm" onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
-                                                                                    ) : (
-                                                                                        <div key={a.id} title={a.name} className="w-7 h-7 rounded-full bg-[#F3F1EC] border-2 border-white flex items-center justify-center text-[#9A9186] font-bold text-[10px] shadow-sm">
-                                                                                            {a.name ? a.name.charAt(0).toUpperCase() : '?'}
-                                                                                        </div>
-                                                                                    )
-                                                                                ))}
-                                                                            </div>
-                                                                            <span className="ml-2 text-sm text-[#3A3733]/80 truncate max-w-[140px]">{post.authors.map((a: any) => a.name).join(', ')}</span>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <span className="text-sm text-[#9A9186]">Desconhecido</span>
-                                                                    )}
-                                                                </td>
-                                                                <td className="px-6 py-4 text-sm text-[#9A9186]">{formatDate(post.createdAt)}</td>
-                                                                <td className="px-6 py-4">
-                                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${post.status === 'Publicado' ? 'bg-[#16243A] text-[#F3F1EC]' : 'bg-[#C7BFB3]/40 text-[#3A3733]'}`}>{post.status}</span>
-                                                                </td>
-                                                                <td className="px-6 py-4 text-right">
-                                                                    <div className="flex items-center justify-end gap-2">
-                                                                        <button onClick={() => handleStartEditPost(post)} title="Editar" className="p-2 text-[#9A9186] hover:text-[#16243A] hover:bg-[#C7BFB3]/20 rounded-lg transition-colors"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
-                                                                        <button onClick={() => handleDeletePost(post)} title="Excluir" className="p-2 text-[#9A9186] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        ))
-                                                    )}
-                                                </tbody>
-                                            </table>
+                                    {filteredPosts.length === 0 ? (
+                                        <div className="bg-[var(--a-surface-2)] rounded-[28px]">
+                                            <EmptyState
+                                                icon={Newspaper}
+                                                title={postSearch ? 'Nenhum artigo corresponde à busca.' : 'Nenhum artigo encontrado.'}
+                                                description={postSearch ? undefined : 'Crie o seu primeiro artigo!'}
+                                            />
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <ListShell>
+                                            {filteredPosts.map((post) => (
+                                                <div key={post.id} className="rounded-2xl bg-[var(--a-surface)] border border-[var(--a-border)] px-4 py-4 md:px-5 flex flex-wrap md:flex-nowrap items-center gap-4">
+                                                    <ThumbBox src={post.imageUrl} />
+                                                    <div className="min-w-0 flex-1 basis-40">
+                                                        <p className="font-semibold text-[var(--a-text)] truncate">{post.title}</p>
+                                                        <div className="flex items-center gap-2 mt-1 text-xs text-[var(--a-muted)]">
+                                                            <span>{post.category}</span>
+                                                            <span className="w-1 h-1 rounded-full bg-[var(--a-faint)]" />
+                                                            <span>{formatDate(post.createdAt)}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center shrink-0">
+                                                        {post.authors && post.authors.length > 0 ? (
+                                                            <div className="flex -space-x-2">
+                                                                {post.authors.map((a: any) => (
+                                                                    <Avatar key={a.id} src={a.imageUrl} name={a.name} size={7} />
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-xs text-[var(--a-faint)]">Sem autor</span>
+                                                        )}
+                                                    </div>
+                                                    <StatusBadge status={post.status} />
+                                                    <div className="flex items-center gap-1 ml-auto md:ml-0">
+                                                        <IconActionButton onClick={() => handleStartEditPost(post)} title="Editar"><Pencil className="w-4 h-4" /></IconActionButton>
+                                                        <IconActionButton onClick={() => handleDeletePost(post)} title="Excluir" variant="danger"><Trash2 className="w-4 h-4" /></IconActionButton>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </ListShell>
+                                    )}
                                 </motion.div>
                             )}
 
                             {/* TELA 2: CRIAR / EDITAR ARTIGO */}
                             {currentView === 'create' && (
                                 <motion.div key="create" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="max-w-4xl mx-auto">
-                                    <button onClick={() => { resetPostForm(); setCurrentView('list'); }} className="mb-6 flex items-center gap-2 text-sm font-semibold text-[#9A9186] hover:text-[#16243A] transition-colors">
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                                    <button onClick={() => { resetPostForm(); setCurrentView('list'); }} className="mb-6 flex items-center gap-2 text-sm font-semibold text-[var(--a-muted)] hover:text-[var(--a-text)] transition-colors">
+                                        <ArrowLeft className="w-4 h-4" />
                                         Voltar para a lista
                                     </button>
-                                    <div className="bg-white rounded-2xl shadow-sm border border-[#C7BFB3]/60 p-6 md:p-10">
+                                    <div className="bg-[var(--a-surface)] border border-[var(--a-border)] rounded-[28px] p-6 md:p-10">
                                         <div className="space-y-8">
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                                 <div className="md:col-span-2 space-y-6">
                                                     <div>
-                                                        <label className="block text-sm font-bold text-[#3A3733] mb-2">Título do Artigo</label>
-                                                        <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Ex: O futuro do compliance..." className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] focus:bg-white transition-all" />
+                                                        <label className={labelCls}>Título do artigo</label>
+                                                        <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Ex: O futuro do compliance..." className={inputCls} />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-bold text-[#3A3733] mb-2">Conteúdo</label>
+                                                        <label className={labelCls}>Conteúdo</label>
                                                         <RichTextEditor
                                                             content={formData.content}
                                                             onChange={(html) => setFormData({ ...formData, content: html })}
@@ -757,17 +871,17 @@ export default function AdminBlogArea() {
                                                     </div>
                                                 </div>
                                                 <div className="space-y-6">
-                                                    <div className="bg-[#F3F1EC]/50 p-5 rounded-xl border border-[#C7BFB3]/60">
-                                                        <h3 className="font-bold text-[#16243A] mb-4 pb-4 border-b border-[#C7BFB3]/50">Publicação</h3>
-                                                        <button disabled={isSubmitting} onClick={(e) => handleCreatePost(e, 'Publicado')} className="w-full bg-[#16243A] hover:bg-[#16243A]/90 text-[#F3F1EC] py-3 rounded-lg font-bold shadow-md transition-colors mb-3 disabled:opacity-50">
-                                                            {isSubmitting ? 'Salvando...' : editingPostId ? 'Publicar Alterações' : 'Publicar Artigo'}
+                                                    <div className="bg-[var(--a-surface-2)] p-5 rounded-2xl">
+                                                        <h3 className="font-bold text-[var(--a-text)] mb-4">Publicação</h3>
+                                                        <button disabled={isSubmitting} onClick={(e) => handleCreatePost(e, 'Publicado')} className="w-full bg-[var(--a-accent)] hover:bg-[var(--a-accent-hover)] text-[var(--a-accent-contrast)] py-3 rounded-full font-bold transition-colors mb-3 disabled:opacity-50">
+                                                            {isSubmitting ? 'Salvando...' : editingPostId ? 'Publicar alterações' : 'Publicar artigo'}
                                                         </button>
-                                                        <button disabled={isSubmitting} onClick={(e) => handleCreatePost(e, 'Rascunho')} className="w-full bg-white hover:bg-[#C7BFB3]/20 border border-[#9A9186] text-[#3A3733] py-3 rounded-lg font-bold transition-colors disabled:opacity-50">
-                                                            Salvar Rascunho
+                                                        <button disabled={isSubmitting} onClick={(e) => handleCreatePost(e, 'Rascunho')} className="w-full bg-[var(--a-text)]/5 hover:bg-[var(--a-text)]/10 text-[var(--a-text)] py-3 rounded-full font-bold transition-colors disabled:opacity-50">
+                                                            Salvar rascunho
                                                         </button>
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-bold text-[#3A3733] mb-2">Categoria</label>
+                                                        <label className={labelCls}>Categoria</label>
                                                         {isNewCategory ? (
                                                             <div className="flex gap-2">
                                                                 <input
@@ -776,12 +890,12 @@ export default function AdminBlogArea() {
                                                                     value={formData.category}
                                                                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                                                     placeholder="Nome da nova categoria"
-                                                                    className="flex-1 min-w-0 px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                                    className={`flex-1 min-w-0 ${inputCls}`}
                                                                 />
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => { setIsNewCategory(false); setFormData({ ...formData, category: categoryOptions[0] || '' }); }}
-                                                                    className="shrink-0 px-4 py-3 rounded-xl border border-[#C7BFB3] text-[#3A3733] text-sm font-bold hover:bg-[#C7BFB3]/30 transition-colors"
+                                                                    className="shrink-0 px-4 py-3 rounded-2xl bg-[var(--a-text)]/5 text-[var(--a-text)] text-sm font-bold hover:bg-[var(--a-text)]/10 transition-colors"
                                                                 >
                                                                     Cancelar
                                                                 </button>
@@ -797,7 +911,7 @@ export default function AdminBlogArea() {
                                                                         setFormData({ ...formData, category: e.target.value });
                                                                     }
                                                                 }}
-                                                                className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                                className={inputCls}
                                                             >
                                                                 {categoryOptions.map((cat) => (
                                                                     <option key={cat} value={cat}>{cat}</option>
@@ -807,83 +921,69 @@ export default function AdminBlogArea() {
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-bold text-[#3A3733] mb-2">Autores</label>
+                                                        <label className={labelCls}>Autores</label>
                                                         {formData.authorIds.length > 0 && (
                                                             <div className="flex -space-x-3 mb-3">
                                                                 {formData.authorIds.map((id) => {
                                                                     const author = users.find((u) => u.id === id);
                                                                     if (!author) return null;
-                                                                    return author.imageUrl ? (
-                                                                        // eslint-disable-next-line @next/next/no-img-element
-                                                                        <img key={id} src={author.imageUrl} alt={author.name} title={author.name} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
-                                                                    ) : (
-                                                                        <div key={id} title={author.name} className="w-10 h-10 rounded-full bg-[#F3F1EC] border-2 border-white flex items-center justify-center text-[#9A9186] font-bold text-sm shadow-sm">
-                                                                            {author.name ? author.name.charAt(0).toUpperCase() : '?'}
-                                                                        </div>
-                                                                    );
+                                                                    return <Avatar key={id} src={author.imageUrl} name={author.name} size={10} />;
                                                                 })}
                                                             </div>
                                                         )}
-                                                        <div className="max-h-56 overflow-y-auto space-y-1 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl p-2">
+                                                        <div className="max-h-56 overflow-y-auto space-y-1 bg-[var(--a-surface-2)] rounded-2xl p-2">
                                                             {users.length === 0 ? (
-                                                                <p className="text-sm text-[#9A9186] p-2">Nenhum usuário cadastrado.</p>
+                                                                <p className="text-sm text-[var(--a-faint)] p-2">Nenhum usuário cadastrado.</p>
                                                             ) : (
                                                                 users.map((user) => (
-                                                                    <label key={user.id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-white/70 cursor-pointer transition-colors">
+                                                                    <label key={user.id} className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-[var(--a-text)]/5 cursor-pointer transition-colors">
                                                                         <input
                                                                             type="checkbox"
                                                                             checked={formData.authorIds.includes(user.id)}
                                                                             onChange={() => toggleFormAuthor(user.id)}
-                                                                            className="w-4 h-4 accent-[#16243A]"
+                                                                            className="w-4 h-4 accent-[var(--a-accent)]"
                                                                         />
-                                                                        {user.imageUrl ? (
-                                                                            // eslint-disable-next-line @next/next/no-img-element
-                                                                            <img src={user.imageUrl} alt="" className="w-7 h-7 rounded-full object-cover border border-[#C7BFB3]/60 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
-                                                                        ) : (
-                                                                            <div className="w-7 h-7 rounded-full bg-white border border-[#C7BFB3]/60 flex items-center justify-center text-[#9A9186] font-bold text-xs shrink-0">
-                                                                                {user.name ? user.name.charAt(0).toUpperCase() : '?'}
-                                                                            </div>
-                                                                        )}
-                                                                        <span className="text-sm text-[#3A3733] truncate">{user.name}</span>
+                                                                        <Avatar src={user.imageUrl} name={user.name} size={7} />
+                                                                        <span className="text-sm text-[var(--a-text)] truncate">{user.name}</span>
                                                                     </label>
                                                                 ))
                                                             )}
                                                         </div>
                                                         {showNewAuthorForm ? (
-                                                            <div className="mt-2 p-3 bg-white border border-[#C7BFB3] rounded-xl space-y-2">
+                                                            <div className="mt-2 p-3 bg-[var(--a-surface-2)] rounded-2xl space-y-2">
                                                                 <input
                                                                     type="text"
                                                                     value={newAuthorName}
                                                                     onChange={(e) => setNewAuthorName(e.target.value)}
                                                                     placeholder="Nome do novo autor"
-                                                                    className="w-full px-3 py-2 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A]"
+                                                                    className="w-full px-3 py-2.5 bg-[var(--a-input-bg)] border border-transparent rounded-xl text-sm text-[var(--a-text)] placeholder:text-[var(--a-faint)] focus:outline-none focus:border-[var(--a-accent)]/40"
                                                                 />
                                                                 <ImageUrlInput
                                                                     value={newAuthorImageUrl}
                                                                     onChange={setNewAuthorImageUrl}
                                                                     placeholder="Foto do autor (URL)"
-                                                                    inputClassName="flex-1 min-w-0 px-3 py-2 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A]"
+                                                                    inputClassName="flex-1 min-w-0 px-3 py-2.5 bg-[var(--a-input-bg)] border border-transparent rounded-xl text-sm text-[var(--a-text)] placeholder:text-[var(--a-faint)] focus:outline-none focus:border-[var(--a-accent)]/40"
                                                                 />
                                                                 <textarea
                                                                     value={newAuthorBio}
                                                                     onChange={(e) => setNewAuthorBio(e.target.value)}
                                                                     placeholder="Mini currículo do autor (exibido junto com a foto no artigo)"
                                                                     rows={2}
-                                                                    className="w-full px-3 py-2 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] resize-none"
+                                                                    className="w-full px-3 py-2.5 bg-[var(--a-input-bg)] border border-transparent rounded-xl text-sm text-[var(--a-text)] placeholder:text-[var(--a-faint)] focus:outline-none focus:border-[var(--a-accent)]/40 resize-none"
                                                                 />
                                                                 <div className="flex gap-2">
                                                                     <button
                                                                         type="button"
                                                                         disabled={isCreatingAuthor}
                                                                         onClick={handleCreateQuickAuthor}
-                                                                        className="flex-1 bg-[#16243A] hover:bg-[#16243A]/90 text-[#F3F1EC] py-2 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
+                                                                        className="flex-1 bg-[var(--a-accent)] hover:bg-[var(--a-accent-hover)] text-[var(--a-accent-contrast)] py-2 rounded-full text-sm font-bold transition-colors disabled:opacity-50"
                                                                     >
-                                                                        {isCreatingAuthor ? 'Adicionando...' : 'Adicionar Autor'}
+                                                                        {isCreatingAuthor ? 'Adicionando...' : 'Adicionar autor'}
                                                                     </button>
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => { setShowNewAuthorForm(false); setNewAuthorName(''); setNewAuthorImageUrl(''); setNewAuthorBio(''); }}
-                                                                        className="px-4 py-2 rounded-lg text-sm font-bold text-[#3A3733] bg-[#F3F1EC] hover:bg-[#C7BFB3]/30 transition-colors"
+                                                                        className="px-4 py-2 rounded-full text-sm font-bold text-[var(--a-text)] bg-[var(--a-text)]/5 hover:bg-[var(--a-text)]/10 transition-colors"
                                                                     >
                                                                         Cancelar
                                                                     </button>
@@ -893,20 +993,20 @@ export default function AdminBlogArea() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setShowNewAuthorForm(true)}
-                                                                className="mt-2 w-full text-sm font-semibold text-[#16243A] hover:text-[#9A9186] border border-dashed border-[#C7BFB3] rounded-lg py-2 transition-colors"
+                                                                className="mt-2 w-full text-sm font-semibold text-[var(--a-accent)] hover:text-[var(--a-accent-hover)] bg-[var(--a-text)]/5 hover:bg-[var(--a-text)]/10 rounded-2xl py-2.5 transition-colors"
                                                             >
                                                                 + Adicionar novo autor
                                                             </button>
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-bold text-[#3A3733] mb-2">Imagem de Capa (URL)</label>
+                                                        <label className={labelCls}>Imagem de capa (URL)</label>
                                                         <ImageUrlInput
                                                             value={formData.imageUrl}
                                                             onChange={(url) => setFormData({ ...formData, imageUrl: url })}
                                                         />
                                                         {formData.imageUrl && (
-                                                            <div className="mt-3 rounded-xl overflow-hidden border border-[#C7BFB3]/60 bg-white">
+                                                            <div className="mt-3 rounded-2xl overflow-hidden bg-[var(--a-surface-2)]">
                                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                                                 <img
                                                                     src={formData.imageUrl}
@@ -927,139 +1027,91 @@ export default function AdminBlogArea() {
                             {/* TELA 3: GESTÃO DE USUÁRIOS */}
                             {currentView === 'users' && (
                                 <motion.div key="users" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="max-w-6xl mx-auto">
-                                    <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                                        <div className="relative w-full sm:w-96">
-                                            <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9186]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                                            <input
-                                                type="text"
-                                                value={userSearch}
-                                                onChange={(e) => setUserSearch(e.target.value)}
-                                                placeholder="Buscar usuários..."
-                                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all shadow-sm"
-                                            />
-                                        </div>
-                                        <button onClick={handleStartCreateUser} className="bg-[#16243A] hover:bg-[#16243A]/90 text-[#F3F1EC] px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg shadow-[#16243A]/20 transition-all w-full sm:w-auto justify-center">
-                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-                                            Adicionar Usuário
+                                    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                                        <SearchInput value={userSearch} onChange={setUserSearch} placeholder="Buscar usuários..." />
+                                        <button onClick={handleStartCreateUser} className="bg-[var(--a-accent)] hover:bg-[var(--a-accent-hover)] text-[var(--a-accent-contrast)] px-6 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all w-full sm:w-auto justify-center">
+                                            <Plus className="w-5 h-5" />
+                                            Adicionar usuário
                                         </button>
                                     </div>
 
-                                    <div className="bg-white border border-[#C7BFB3]/60 rounded-2xl shadow-sm overflow-hidden">
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full text-left border-collapse">
-                                                <thead>
-                                                    <tr className="bg-[#F3F1EC]/50 border-b border-[#C7BFB3]/50 text-xs uppercase tracking-wider text-[#9A9186] font-semibold">
-                                                        <th className="px-6 py-4">Usuário</th>
-                                                        <th className="px-6 py-4">Papel</th>
-                                                        <th className="px-6 py-4">Data de Cadastro</th>
-                                                        <th className="px-6 py-4">Status</th>
-                                                        <th className="px-6 py-4 text-right">Ações</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-[#C7BFB3]/30">
-                                                    {filteredUsers.length === 0 ? (
-                                                        <tr><td colSpan={5} className="px-6 py-8 text-center text-[#9A9186]">
-                                                            {userSearch ? 'Nenhum usuário corresponde à busca.' : 'Nenhum usuário cadastrado.'}
-                                                        </td></tr>
-                                                    ) : (
-                                                        filteredUsers.map((user) => (
-                                                            <tr key={user.id} className="hover:bg-[#F3F1EC]/60 transition-colors">
-                                                                <td className="px-6 py-4">
-                                                                    <div className="flex items-center gap-3">
-                                                                        {user.imageUrl ? (
-                                                                            // eslint-disable-next-line @next/next/no-img-element
-                                                                            <img src={user.imageUrl} alt="" className="w-9 h-9 rounded-full object-cover border border-[#C7BFB3]/60 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
-                                                                        ) : (
-                                                                            <div className="w-9 h-9 rounded-full bg-[#F3F1EC] border border-[#C7BFB3]/60 flex items-center justify-center text-[#9A9186] font-bold text-sm shrink-0">
-                                                                                {user.name ? user.name.charAt(0).toUpperCase() : '?'}
-                                                                            </div>
-                                                                        )}
-                                                                        <div>
-                                                                            <p className="font-semibold text-[#3A3733]">{user.name}</p>
-                                                                            <p className="text-sm text-[#9A9186]">{user.email}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="px-6 py-4 text-sm text-[#3A3733]/80">{user.role}</td>
-                                                                <td className="px-6 py-4 text-sm text-[#9A9186]">{formatDate(user.createdAt)}</td>
-                                                                <td className="px-6 py-4">
-                                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status === 'Ativo' ? 'bg-[#16243A] text-[#F3F1EC]' : 'bg-[#C7BFB3]/40 text-[#3A3733]'}`}>{user.status}</span>
-                                                                </td>
-                                                                <td className="px-6 py-4 text-right">
-                                                                    <div className="flex items-center justify-end gap-2">
-                                                                        <button onClick={() => handleStartEditUser(user)} title="Editar" className="p-2 text-[#9A9186] hover:text-[#16243A] hover:bg-[#C7BFB3]/20 rounded-lg transition-colors"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
-                                                                        <button onClick={() => handleDeleteUser(user)} title="Excluir" className="p-2 text-[#9A9186] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        ))
-                                                    )}
-                                                </tbody>
-                                            </table>
+                                    {filteredUsers.length === 0 ? (
+                                        <div className="bg-[var(--a-surface-2)] rounded-[28px]">
+                                            <EmptyState
+                                                icon={UsersIcon}
+                                                title={userSearch ? 'Nenhum usuário corresponde à busca.' : 'Nenhum usuário cadastrado.'}
+                                            />
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <ListShell>
+                                            {filteredUsers.map((user) => (
+                                                <div key={user.id} className="rounded-2xl bg-[var(--a-surface)] border border-[var(--a-border)] px-4 py-4 md:px-5 flex flex-wrap md:flex-nowrap items-center gap-4">
+                                                    <Avatar src={user.imageUrl} name={user.name} size={9} />
+                                                    <div className="min-w-0 flex-1 basis-40">
+                                                        <p className="font-semibold text-[var(--a-text)] truncate">{user.name}</p>
+                                                        <p className="text-xs text-[var(--a-muted)] truncate">{user.email}</p>
+                                                    </div>
+                                                    <span className="text-xs text-[var(--a-muted)] bg-[var(--a-text)]/5 px-3 py-1 rounded-full shrink-0">{user.role}</span>
+                                                    <span className="text-xs text-[var(--a-faint)] shrink-0 hidden sm:block">{formatDate(user.createdAt)}</span>
+                                                    <StatusBadge status={user.status} activeValue="Ativo" />
+                                                    <div className="flex items-center gap-1 ml-auto md:ml-0">
+                                                        <IconActionButton onClick={() => handleStartEditUser(user)} title="Editar"><Pencil className="w-4 h-4" /></IconActionButton>
+                                                        <IconActionButton onClick={() => handleDeleteUser(user)} title="Excluir" variant="danger"><Trash2 className="w-4 h-4" /></IconActionButton>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </ListShell>
+                                    )}
                                 </motion.div>
                             )}
 
                             {/* TELA 4: CRIAR / EDITAR USUÁRIO */}
                             {currentView === 'createUser' && (
                                 <motion.div key="createUser" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="max-w-3xl mx-auto">
-                                    <button onClick={() => { resetUserForm(); setCurrentView('users'); }} className="mb-6 flex items-center gap-2 text-sm font-semibold text-[#9A9186] hover:text-[#16243A] transition-colors">
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                                    <button onClick={() => { resetUserForm(); setCurrentView('users'); }} className="mb-6 flex items-center gap-2 text-sm font-semibold text-[var(--a-muted)] hover:text-[var(--a-text)] transition-colors">
+                                        <ArrowLeft className="w-4 h-4" />
                                         Voltar para usuários
                                     </button>
 
-                                    <div className="bg-white rounded-2xl shadow-sm border border-[#C7BFB3]/60 p-6 md:p-10">
+                                    <div className="bg-[var(--a-surface)] border border-[var(--a-border)] rounded-[28px] p-6 md:p-10">
                                         <div className="space-y-6">
                                             <div>
-                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Nome Completo</label>
+                                                <label className={labelCls}>Nome completo</label>
                                                 <input
                                                     type="text"
                                                     value={userFormData.name}
                                                     onChange={(e) => setUserFormData({ ...userFormData, name: e.target.value })}
                                                     placeholder="Ex: João da Silva"
-                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                    className={inputCls}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">E-mail</label>
+                                                <label className={labelCls}>E-mail</label>
                                                 <input
                                                     type="email"
                                                     value={userFormData.email}
                                                     onChange={(e) => setUserFormData({ ...userFormData, email: e.target.value })}
                                                     placeholder="Ex: joao@empresa.com"
-                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                    className={inputCls}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">
-                                                    Senha {editingUserId && <span className="font-normal text-[#9A9186]">(deixe em branco para manter a atual)</span>}
+                                                <label className={labelCls}>
+                                                    Senha {editingUserId && <span className="text-[var(--a-faint)]">(deixe em branco para manter a atual)</span>}
                                                 </label>
                                                 <input
                                                     type="password"
                                                     value={userFormData.password}
                                                     onChange={(e) => setUserFormData({ ...userFormData, password: e.target.value })}
                                                     placeholder={editingUserId ? "••••••••" : "Mínimo de 6 caracteres"}
-                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                    className={inputCls}
                                                 />
                                             </div>
 
                                             <div>
-                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Foto de Perfil (URL)</label>
+                                                <label className={labelCls}>Foto de perfil (URL)</label>
                                                 <div className="flex items-center gap-4">
-                                                    {userFormData.imageUrl ? (
-                                                        // eslint-disable-next-line @next/next/no-img-element
-                                                        <img
-                                                            src={userFormData.imageUrl}
-                                                            alt="Pré-visualização"
-                                                            className="w-14 h-14 rounded-full object-cover border border-[#C7BFB3]/60 shrink-0"
-                                                            onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}
-                                                        />
-                                                    ) : (
-                                                        <div className="w-14 h-14 rounded-full bg-[#F3F1EC] border border-[#C7BFB3]/60 flex items-center justify-center text-[#9A9186] font-bold shrink-0">
-                                                            {userFormData.name ? userFormData.name.charAt(0).toUpperCase() : '?'}
-                                                        </div>
-                                                    )}
+                                                    <Avatar src={userFormData.imageUrl} name={userFormData.name} size={14} />
                                                     <ImageUrlInput
                                                         value={userFormData.imageUrl}
                                                         onChange={(url) => setUserFormData({ ...userFormData, imageUrl: url })}
@@ -1068,24 +1120,24 @@ export default function AdminBlogArea() {
                                             </div>
 
                                             <div>
-                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Mini Currículo</label>
+                                                <label className={labelCls}>Mini currículo</label>
                                                 <textarea
                                                     value={userFormData.bio}
                                                     onChange={(e) => setUserFormData({ ...userFormData, bio: e.target.value })}
                                                     placeholder="Ex: Mestre em Direito da Regulação pela FGV, atua há 10 anos com compliance corporativo."
                                                     rows={3}
-                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all resize-none"
+                                                    className={`${inputCls} resize-none`}
                                                 />
-                                                <p className="text-xs text-[#9A9186] mt-1.5">Exibido junto com a foto do autor nos artigos do blog.</p>
+                                                <p className="text-xs text-[var(--a-faint)] mt-1.5">Exibido junto com a foto do autor nos artigos do blog.</p>
                                             </div>
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
-                                                    <label className="block text-sm font-bold text-[#3A3733] mb-2">Papel (Role)</label>
+                                                    <label className={labelCls}>Papel (role)</label>
                                                     <select
                                                         value={userFormData.role}
                                                         onChange={(e) => setUserFormData({ ...userFormData, role: e.target.value })}
-                                                        className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                        className={inputCls}
                                                     >
                                                         <option value="Autor">Autor</option>
                                                         <option value="Editor">Editor</option>
@@ -1093,11 +1145,11 @@ export default function AdminBlogArea() {
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-bold text-[#3A3733] mb-2">Status</label>
+                                                    <label className={labelCls}>Status</label>
                                                     <select
                                                         value={userFormData.status}
                                                         onChange={(e) => setUserFormData({ ...userFormData, status: e.target.value })}
-                                                        className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                        className={inputCls}
                                                     >
                                                         <option value="Ativo">Ativo</option>
                                                         <option value="Inativo">Inativo</option>
@@ -1105,19 +1157,19 @@ export default function AdminBlogArea() {
                                                 </div>
                                             </div>
 
-                                            <div className="pt-6 border-t border-[#C7BFB3]/30 flex justify-end gap-4">
+                                            <div className="pt-6 flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">
                                                 <button
                                                     onClick={() => { resetUserForm(); setCurrentView('users'); }}
-                                                    className="px-6 py-3 rounded-lg font-bold text-[#3A3733] bg-[#F3F1EC] hover:bg-[#C7BFB3]/30 transition-colors"
+                                                    className="px-6 py-3 rounded-full font-bold text-[var(--a-text)] bg-[var(--a-text)]/5 hover:bg-[var(--a-text)]/10 transition-colors"
                                                 >
                                                     Cancelar
                                                 </button>
                                                 <button
                                                     disabled={isSubmittingUser}
                                                     onClick={handleCreateUser}
-                                                    className="px-6 py-3 rounded-lg font-bold text-[#F3F1EC] bg-[#16243A] hover:bg-[#16243A]/90 shadow-md transition-colors disabled:opacity-50"
+                                                    className="px-6 py-3 rounded-full font-bold text-[var(--a-accent-contrast)] bg-[var(--a-accent)] hover:bg-[var(--a-accent-hover)] transition-colors disabled:opacity-50"
                                                 >
-                                                    {isSubmittingUser ? 'Salvando...' : editingUserId ? 'Salvar Alterações' : 'Salvar Usuário'}
+                                                    {isSubmittingUser ? 'Salvando...' : editingUserId ? 'Salvar alterações' : 'Salvar usuário'}
                                                 </button>
                                             </div>
                                         </div>
@@ -1127,209 +1179,141 @@ export default function AdminBlogArea() {
                             {/* TELA 5: CONTATOS RECEBIDOS */}
                             {currentView === 'leads' && (
                                 <motion.div key="leads" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="max-w-6xl mx-auto">
-                                    <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                                        <div className="relative w-full sm:w-96">
-                                            <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9186]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                                            <input
-                                                type="text"
-                                                value={leadSearch}
-                                                onChange={(e) => setLeadSearch(e.target.value)}
-                                                placeholder="Buscar contatos..."
-                                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all shadow-sm"
-                                            />
-                                        </div>
-                                        <p className="text-sm text-[#9A9186] font-semibold">{filteredLeads.length} contato(s)</p>
+                                    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                                        <SearchInput value={leadSearch} onChange={setLeadSearch} placeholder="Buscar contatos..." />
+                                        <p className="text-sm text-[var(--a-muted)] font-semibold">{filteredLeads.length} contato(s)</p>
                                     </div>
 
-                                    <div className="bg-white border border-[#C7BFB3]/60 rounded-2xl shadow-sm overflow-hidden">
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full text-left border-collapse">
-                                                <thead>
-                                                    <tr className="bg-[#F3F1EC]/50 border-b border-[#C7BFB3]/50 text-xs uppercase tracking-wider text-[#9A9186] font-semibold">
-                                                        <th className="px-6 py-4">Contato</th>
-                                                        <th className="px-6 py-4">Telefone</th>
-                                                        <th className="px-6 py-4">Assunto / Programa</th>
-                                                        <th className="px-6 py-4">Mensagem</th>
-                                                        <th className="px-6 py-4">Origem</th>
-                                                        <th className="px-6 py-4">Recebido em</th>
-                                                        <th className="px-6 py-4 text-right">Ações</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-[#C7BFB3]/30">
-                                                    {filteredLeads.length === 0 ? (
-                                                        <tr><td colSpan={7} className="px-6 py-8 text-center text-[#9A9186]">
-                                                            {leadSearch ? 'Nenhum contato corresponde à busca.' : 'Nenhum contato recebido ainda.'}
-                                                        </td></tr>
-                                                    ) : (
-                                                        filteredLeads.map((lead) => (
-                                                            <tr key={lead.id} className="hover:bg-[#F3F1EC]/60 transition-colors">
-                                                                <td className="px-6 py-4">
-                                                                    <div>
-                                                                        <p className="font-semibold text-[#3A3733]">{lead.name || 'Não informado'}</p>
-                                                                        <a href={`mailto:${lead.email}`} className="text-sm text-[#9A9186] hover:text-[#16243A] transition-colors">{lead.email}</a>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="px-6 py-4 text-sm text-[#3A3733]/80">
-                                                                    {lead.phone ? (
-                                                                        <a href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-[#16243A] transition-colors">{lead.phone}</a>
-                                                                    ) : '—'}
-                                                                </td>
-                                                                <td className="px-6 py-4 text-sm text-[#3A3733]/80">
-                                                                    {lead.course ? (
-                                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#F3F1EC] border border-[#C7BFB3]/60 text-[#3A3733]">{formatCourse(lead.course)}</span>
-                                                                    ) : lead.subject ? (
-                                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#F3F1EC] border border-[#C7BFB3]/60 text-[#3A3733]">{lead.subject}</span>
-                                                                    ) : '—'}
-                                                                </td>
-                                                                <td className="px-6 py-4 text-sm text-[#3A3733]/80 max-w-xs">
-                                                                    {lead.message ? (
-                                                                        <p className="truncate" title={lead.message}>{lead.message}</p>
-                                                                    ) : '—'}
-                                                                </td>
-                                                                <td className="px-6 py-4 text-sm">
-                                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${lead.source === 'popup' ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700'}`}>
-                                                                        {lead.source === 'popup' ? 'Popup' : 'Formulário'}
-                                                                    </span>
-                                                                </td>
-                                                                <td className="px-6 py-4 text-sm text-[#9A9186]">{formatDate(lead.createdAt)}</td>
-                                                                <td className="px-6 py-4 text-right">
-                                                                    <div className="flex items-center justify-end gap-2">
-                                                                        <button onClick={() => handleDeleteLead(lead)} title="Excluir" className="p-2 text-[#9A9186] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        ))
-                                                    )}
-                                                </tbody>
-                                            </table>
+                                    {filteredLeads.length === 0 ? (
+                                        <div className="bg-[var(--a-surface-2)] rounded-[28px]">
+                                            <EmptyState
+                                                title={leadSearch ? 'Nenhum contato corresponde à busca.' : 'Nenhum contato recebido ainda.'}
+                                            />
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <ListShell>
+                                            {filteredLeads.map((lead) => (
+                                                <div key={lead.id} className="rounded-2xl bg-[var(--a-surface)] border border-[var(--a-border)] px-5 py-4 flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="font-semibold text-[var(--a-text)] truncate">{lead.name || 'Não informado'}</p>
+                                                        <a href={`mailto:${lead.email}`} className="text-xs text-[var(--a-muted)] hover:text-[var(--a-accent)] transition-colors">{lead.email}</a>
+                                                        {lead.message && (
+                                                            <p className="text-xs text-[var(--a-faint)] truncate max-w-md mt-1" title={lead.message}>{lead.message}</p>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                                                        {lead.phone && (
+                                                            <a href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--a-muted)] hover:text-[var(--a-accent)] bg-[var(--a-text)]/5 px-3 py-1 rounded-full transition-colors">{lead.phone}</a>
+                                                        )}
+                                                        {(lead.course || lead.subject) && (
+                                                            <span className="text-xs text-[var(--a-text)] bg-[var(--a-text)]/5 px-3 py-1 rounded-full">{lead.course ? formatCourse(lead.course) : lead.subject}</span>
+                                                        )}
+                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${lead.source === 'popup' ? 'bg-[var(--a-highlight-to)]/15 text-[var(--a-highlight-to)]' : 'bg-[var(--a-accent)]/15 text-[var(--a-accent)]'}`}>
+                                                            {lead.source === 'popup' ? 'Popup' : 'Formulário'}
+                                                        </span>
+                                                        <span className="text-xs text-[var(--a-faint)]">{formatDate(lead.createdAt)}</span>
+                                                    </div>
+                                                    <IconActionButton onClick={() => handleDeleteLead(lead)} title="Excluir" variant="danger"><Trash2 className="w-4 h-4" /></IconActionButton>
+                                                </div>
+                                            ))}
+                                        </ListShell>
+                                    )}
                                 </motion.div>
                             )}
 
                             {/* TELA 6: LISTA DE EVENTOS DA AGENDA */}
                             {currentView === 'agenda' && (
                                 <motion.div key="agenda" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="max-w-6xl mx-auto">
-                                    <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                                        <div className="relative w-full sm:w-96">
-                                            <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9186]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                                            <input
-                                                type="text"
-                                                value={agendaSearch}
-                                                onChange={(e) => setAgendaSearch(e.target.value)}
-                                                placeholder="Buscar eventos..."
-                                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all shadow-sm"
-                                            />
-                                        </div>
-                                        <button onClick={handleStartCreateAgenda} className="bg-[#16243A] hover:bg-[#16243A]/90 text-[#F3F1EC] px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg shadow-[#16243A]/20 transition-all w-full sm:w-auto justify-center">
-                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                                            Criar Novo Evento
+                                    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                                        <SearchInput value={agendaSearch} onChange={setAgendaSearch} placeholder="Buscar eventos..." />
+                                        <button onClick={handleStartCreateAgenda} className="bg-[var(--a-accent)] hover:bg-[var(--a-accent-hover)] text-[var(--a-accent-contrast)] px-6 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all w-full sm:w-auto justify-center">
+                                            <Plus className="w-5 h-5" />
+                                            Criar novo evento
                                         </button>
                                     </div>
 
-                                    <div className="bg-white border border-[#C7BFB3]/60 rounded-2xl shadow-sm overflow-hidden">
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full text-left border-collapse">
-                                                <thead>
-                                                    <tr className="bg-[#F3F1EC]/50 border-b border-[#C7BFB3]/50 text-xs uppercase tracking-wider text-[#9A9186] font-semibold">
-                                                        <th className="px-6 py-4">Evento</th>
-                                                        <th className="px-6 py-4">Categoria</th>
-                                                        <th className="px-6 py-4">Palestrantes</th>
-                                                        <th className="px-6 py-4">Ordem</th>
-                                                        <th className="px-6 py-4">Status</th>
-                                                        <th className="px-6 py-4 text-right">Ações</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-[#C7BFB3]/30">
-                                                    {filteredAgenda.length === 0 ? (
-                                                        <tr><td colSpan={6} className="px-6 py-8 text-center text-[#9A9186]">
-                                                            {agendaSearch ? 'Nenhum evento corresponde à busca.' : 'Nenhum evento encontrado. Crie o seu primeiro!'}
-                                                        </td></tr>
-                                                    ) : (
-                                                        filteredAgenda.map((item) => (
-                                                            <tr key={item.id} className="hover:bg-[#F3F1EC]/60 transition-colors">
-                                                                <td className="px-6 py-4">
-                                                                    <div className="flex items-center gap-3">
-                                                                        {item.image ? (
-                                                                            // eslint-disable-next-line @next/next/no-img-element
-                                                                            <img src={item.image} alt="" className="w-10 h-10 rounded-lg object-cover border border-[#C7BFB3]/60 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
-                                                                        ) : (
-                                                                            <div className="w-10 h-10 rounded-lg bg-[#F3F1EC] border border-[#C7BFB3]/60 shrink-0" />
-                                                                        )}
-                                                                        <p className="font-semibold text-[#3A3733] truncate max-w-xs">{item.title}</p>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="px-6 py-4 text-sm text-[#3A3733]/80">{item.category}</td>
-                                                                <td className="px-6 py-4 text-sm text-[#3A3733]/80 truncate max-w-xs">{item.speakers}</td>
-                                                                <td className="px-6 py-4 text-sm text-[#9A9186]">{item.order}</td>
-                                                                <td className="px-6 py-4">
-                                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.status === 'Ativo' ? 'bg-[#16243A] text-[#F3F1EC]' : 'bg-[#C7BFB3]/40 text-[#3A3733]'}`}>{item.status}</span>
-                                                                </td>
-                                                                <td className="px-6 py-4 text-right">
-                                                                    <div className="flex items-center justify-end gap-2">
-                                                                        <button onClick={() => handleStartEditAgenda(item)} title="Editar" className="p-2 text-[#9A9186] hover:text-[#16243A] hover:bg-[#C7BFB3]/20 rounded-lg transition-colors"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
-                                                                        <button onClick={() => handleDeleteAgenda(item)} title="Excluir" className="p-2 text-[#9A9186] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        ))
-                                                    )}
-                                                </tbody>
-                                            </table>
+                                    {filteredAgenda.length === 0 ? (
+                                        <div className="bg-[var(--a-surface-2)] rounded-[28px]">
+                                            <EmptyState
+                                                title={agendaSearch ? 'Nenhum evento corresponde à busca.' : 'Nenhum evento encontrado.'}
+                                                description={agendaSearch ? undefined : 'Crie o seu primeiro evento!'}
+                                            />
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <ListShell>
+                                            {filteredAgenda.map((item) => (
+                                                <div key={item.id} className="rounded-2xl bg-[var(--a-surface)] border border-[var(--a-border)] px-4 py-4 md:px-5 flex flex-wrap md:flex-nowrap items-center gap-4">
+                                                    <ThumbBox src={item.image} />
+                                                    <div className="min-w-0 flex-1 basis-40">
+                                                        <p className="font-semibold text-[var(--a-text)] truncate">{item.title}</p>
+                                                        <div className="flex items-center gap-2 mt-1 text-xs text-[var(--a-muted)]">
+                                                            <span className="truncate max-w-[160px]">{item.category}</span>
+                                                            <span className="w-1 h-1 rounded-full bg-[var(--a-faint)] shrink-0" />
+                                                            <span className="flex items-center gap-1 truncate"><Mic className="w-3 h-3 shrink-0" />{item.speakers}</span>
+                                                        </div>
+                                                    </div>
+                                                    <span className="hidden sm:flex items-center gap-1 text-xs text-[var(--a-faint)] shrink-0"><Hash className="w-3 h-3" />{item.order}</span>
+                                                    <StatusBadge status={item.status} activeValue="Ativo" />
+                                                    <div className="flex items-center gap-1 ml-auto md:ml-0">
+                                                        <IconActionButton onClick={() => handleStartEditAgenda(item)} title="Editar"><Pencil className="w-4 h-4" /></IconActionButton>
+                                                        <IconActionButton onClick={() => handleDeleteAgenda(item)} title="Excluir" variant="danger"><Trash2 className="w-4 h-4" /></IconActionButton>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </ListShell>
+                                    )}
                                 </motion.div>
                             )}
 
                             {/* TELA 7: CRIAR / EDITAR EVENTO DA AGENDA */}
                             {currentView === 'createAgenda' && (
                                 <motion.div key="createAgenda" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="max-w-3xl mx-auto">
-                                    <button onClick={() => { resetAgendaForm(); setCurrentView('agenda'); }} className="mb-6 flex items-center gap-2 text-sm font-semibold text-[#9A9186] hover:text-[#16243A] transition-colors">
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                                    <button onClick={() => { resetAgendaForm(); setCurrentView('agenda'); }} className="mb-6 flex items-center gap-2 text-sm font-semibold text-[var(--a-muted)] hover:text-[var(--a-text)] transition-colors">
+                                        <ArrowLeft className="w-4 h-4" />
                                         Voltar para agenda
                                     </button>
 
-                                    <div className="bg-white rounded-2xl shadow-sm border border-[#C7BFB3]/60 p-6 md:p-10">
+                                    <div className="bg-[var(--a-surface)] border border-[var(--a-border)] rounded-[28px] p-6 md:p-10">
                                         <div className="space-y-6">
                                             <div>
-                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Categoria</label>
+                                                <label className={labelCls}>Categoria</label>
                                                 <input
                                                     type="text"
                                                     value={agendaFormData.category}
                                                     onChange={(e) => setAgendaFormData({ ...agendaFormData, category: e.target.value })}
                                                     placeholder="Ex: [ PROGRAMA ESPECIAL ]"
-                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                    className={inputCls}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Título do Evento</label>
+                                                <label className={labelCls}>Título do evento</label>
                                                 <input
                                                     type="text"
                                                     value={agendaFormData.title}
                                                     onChange={(e) => setAgendaFormData({ ...agendaFormData, title: e.target.value })}
                                                     placeholder="Ex: Estratégia e Inovação — 2026/2027"
-                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                    className={inputCls}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Palestrantes</label>
+                                                <label className={labelCls}>Palestrantes</label>
                                                 <input
                                                     type="text"
                                                     value={agendaFormData.speakers}
                                                     onChange={(e) => setAgendaFormData({ ...agendaFormData, speakers: e.target.value })}
                                                     placeholder="Ex: HELENA VILLA-LOBOS, ROBERTO K. MENDES"
-                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                    className={inputCls}
                                                 />
-                                                <p className="text-xs text-[#9A9186] mt-1.5">Separe os nomes por vírgula.</p>
+                                                <p className="text-xs text-[var(--a-faint)] mt-1.5">Separe os nomes por vírgula.</p>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Imagem de Fundo (URL)</label>
+                                                <label className={labelCls}>Imagem de fundo (URL)</label>
                                                 <ImageUrlInput
                                                     value={agendaFormData.image}
                                                     onChange={(url) => setAgendaFormData({ ...agendaFormData, image: url })}
                                                 />
                                                 {agendaFormData.image && (
-                                                    <div className="mt-3 rounded-xl overflow-hidden border border-[#C7BFB3]/60 bg-white">
+                                                    <div className="mt-3 rounded-2xl overflow-hidden bg-[var(--a-surface-2)]">
                                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                                         <img
                                                             src={agendaFormData.image}
@@ -1341,21 +1325,21 @@ export default function AdminBlogArea() {
                                                 )}
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Link (opcional)</label>
+                                                <label className={labelCls}>Link (opcional)</label>
                                                 <input
                                                     type="text"
                                                     value={agendaFormData.link}
                                                     onChange={(e) => setAgendaFormData({ ...agendaFormData, link: e.target.value })}
                                                     placeholder="https://..."
-                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                    className={inputCls}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-bold text-[#3A3733] mb-2">Tamanho do Card</label>
+                                                <label className={labelCls}>Tamanho do card</label>
                                                 <select
                                                     value={agendaFormData.gridClass}
                                                     onChange={(e) => setAgendaFormData({ ...agendaFormData, gridClass: e.target.value })}
-                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                    className={inputCls}
                                                 >
                                                     {AGENDA_LAYOUT_OPTIONS.map((opt) => (
                                                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -1364,20 +1348,20 @@ export default function AdminBlogArea() {
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
-                                                    <label className="block text-sm font-bold text-[#3A3733] mb-2">Ordem de Exibição</label>
+                                                    <label className={labelCls}>Ordem de exibição</label>
                                                     <input
                                                         type="number"
                                                         value={agendaFormData.order}
                                                         onChange={(e) => setAgendaFormData({ ...agendaFormData, order: Number(e.target.value) })}
-                                                        className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                        className={inputCls}
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-bold text-[#3A3733] mb-2">Status</label>
+                                                    <label className={labelCls}>Status</label>
                                                     <select
                                                         value={agendaFormData.status}
                                                         onChange={(e) => setAgendaFormData({ ...agendaFormData, status: e.target.value })}
-                                                        className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                        className={inputCls}
                                                     >
                                                         <option value="Ativo">Ativo</option>
                                                         <option value="Inativo">Inativo</option>
@@ -1385,19 +1369,19 @@ export default function AdminBlogArea() {
                                                 </div>
                                             </div>
 
-                                            <div className="pt-6 border-t border-[#C7BFB3]/30 flex justify-end gap-4">
+                                            <div className="pt-6 flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">
                                                 <button
                                                     onClick={() => { resetAgendaForm(); setCurrentView('agenda'); }}
-                                                    className="px-6 py-3 rounded-lg font-bold text-[#3A3733] bg-[#F3F1EC] hover:bg-[#C7BFB3]/30 transition-colors"
+                                                    className="px-6 py-3 rounded-full font-bold text-[var(--a-text)] bg-[var(--a-text)]/5 hover:bg-[var(--a-text)]/10 transition-colors"
                                                 >
                                                     Cancelar
                                                 </button>
                                                 <button
                                                     disabled={isSubmittingAgenda}
                                                     onClick={handleCreateAgenda}
-                                                    className="px-6 py-3 rounded-lg font-bold text-[#F3F1EC] bg-[#16243A] hover:bg-[#16243A]/90 shadow-md transition-colors disabled:opacity-50"
+                                                    className="px-6 py-3 rounded-full font-bold text-[var(--a-accent-contrast)] bg-[var(--a-accent)] hover:bg-[var(--a-accent-hover)] transition-colors disabled:opacity-50"
                                                 >
-                                                    {isSubmittingAgenda ? 'Salvando...' : editingAgendaId ? 'Salvar Alterações' : 'Salvar Evento'}
+                                                    {isSubmittingAgenda ? 'Salvando...' : editingAgendaId ? 'Salvar alterações' : 'Salvar evento'}
                                                 </button>
                                             </div>
                                         </div>
