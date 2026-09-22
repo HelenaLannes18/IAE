@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
+import { uniqueSlug } from '@/lib/slugify';
 
 interface Params {
     params: Promise<{ id: string }>;
@@ -45,6 +46,17 @@ export async function PUT(request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Selecione pelo menos um autor.' }, { status: 400 });
         }
 
+        // O slug é gerado uma única vez e mantido estável (não muda ao editar o título,
+        // para não quebrar links já compartilhados). Só gera um se o artigo ainda não tiver.
+        const currentPost = await prisma.post.findUnique({ where: { id: Number(id) }, select: { slug: true } });
+        let slugData = {};
+        if (!currentPost?.slug) {
+            const existingSlugs = new Set(
+                (await prisma.post.findMany({ select: { slug: true } })).map((p) => p.slug).filter((s): s is string => !!s)
+            );
+            slugData = { slug: uniqueSlug(title, existingSlugs) };
+        }
+
         const updatedPost = await prisma.post.update({
             where: { id: Number(id) },
             data: {
@@ -53,6 +65,7 @@ export async function PUT(request: Request, { params }: Params) {
                 category,
                 status,
                 imageUrl,
+                ...slugData,
                 authors: { set: authorIds.map((authorId: number) => ({ id: Number(authorId) })) }
             },
             include: { authors: { select: { id: true, name: true, imageUrl: true, bio: true } } }

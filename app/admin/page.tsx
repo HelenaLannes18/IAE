@@ -28,6 +28,9 @@ export default function AdminBlogArea() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingPostId, setEditingPostId] = useState<number | null>(null);
 
+    // Criação de nova categoria de artigo, direto na tela do artigo
+    const [isNewCategory, setIsNewCategory] = useState(false);
+
     // Criacao rapida de um novo autor (nome + foto), direto na tela do artigo
     const [showNewAuthorForm, setShowNewAuthorForm] = useState(false);
     const [newAuthorName, setNewAuthorName] = useState('');
@@ -108,6 +111,7 @@ export default function AdminBlogArea() {
     const resetPostForm = () => {
         setFormData({ title: '', content: '', category: 'Insights', imageUrl: '', authorIds: [] });
         setEditingPostId(null);
+        setIsNewCategory(false);
     };
 
     const handleStartCreatePost = () => {
@@ -124,6 +128,7 @@ export default function AdminBlogArea() {
             authorIds: (post.authors || []).map((a: any) => a.id)
         });
         setEditingPostId(post.id);
+        setIsNewCategory(false);
         setCurrentView('create');
     };
 
@@ -427,6 +432,13 @@ export default function AdminBlogArea() {
     const publishedPosts = posts.filter(p => p.status === 'Publicado').length;
     const totalUsers = users.length;
     const activeUsers = users.filter(u => u.status === 'Ativo').length;
+
+    // Categorias já usadas em artigos existentes, combinadas com as padrão (sem duplicatas)
+    const categoryOptions = useMemo(() => {
+        const defaults = ['Insights', 'Estratégia', 'Direito Trabalhista', 'Tributário'];
+        const fromPosts = posts.map((p) => p.category).filter(Boolean);
+        return Array.from(new Set([...defaults, ...fromPosts]));
+    }, [posts]);
 
     const filteredPosts = useMemo(() => {
         const term = postSearch.trim().toLowerCase();
@@ -756,12 +768,43 @@ export default function AdminBlogArea() {
                                                     </div>
                                                     <div>
                                                         <label className="block text-sm font-bold text-[#3A3733] mb-2">Categoria</label>
-                                                        <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all">
-                                                            <option value="Insights">Insights</option>
-                                                            <option value="Estratégia">Estratégia</option>
-                                                            <option value="Direito Trabalhista">Direito Trabalhista</option>
-                                                            <option value="Tributário">Tributário</option>
-                                                        </select>
+                                                        {isNewCategory ? (
+                                                            <div className="flex gap-2">
+                                                                <input
+                                                                    type="text"
+                                                                    autoFocus
+                                                                    value={formData.category}
+                                                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                                                    placeholder="Nome da nova categoria"
+                                                                    className="flex-1 min-w-0 px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => { setIsNewCategory(false); setFormData({ ...formData, category: categoryOptions[0] || '' }); }}
+                                                                    className="shrink-0 px-4 py-3 rounded-xl border border-[#C7BFB3] text-[#3A3733] text-sm font-bold hover:bg-[#C7BFB3]/30 transition-colors"
+                                                                >
+                                                                    Cancelar
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <select
+                                                                value={formData.category}
+                                                                onChange={(e) => {
+                                                                    if (e.target.value === '__new__') {
+                                                                        setIsNewCategory(true);
+                                                                        setFormData({ ...formData, category: '' });
+                                                                    } else {
+                                                                        setFormData({ ...formData, category: e.target.value });
+                                                                    }
+                                                                }}
+                                                                className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                            >
+                                                                {categoryOptions.map((cat) => (
+                                                                    <option key={cat} value={cat}>{cat}</option>
+                                                                ))}
+                                                                <option value="__new__">+ Nova categoria...</option>
+                                                            </select>
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <label className="block text-sm font-bold text-[#3A3733] mb-2">Autores</label>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
+import { uniqueSlug } from '@/lib/slugify';
 
 // Método para LISTAR os artigos (usado no Dashboard e na Tabela)
 export async function GET() {
@@ -34,9 +35,16 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Selecione pelo menos um autor.' }, { status: 400 });
         }
 
+        // Gera um slug único para a URL pública do artigo (ex: /blog/meu-artigo) a partir do título
+        const existingSlugs = new Set(
+            (await prisma.post.findMany({ select: { slug: true } })).map((p) => p.slug).filter((s): s is string => !!s)
+        );
+        const slug = uniqueSlug(title, existingSlugs);
+
         const newPost = await prisma.post.create({
             data: {
                 title,
+                slug,
                 content,
                 category,
                 status,

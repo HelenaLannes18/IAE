@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Link from 'next/link'; // Adicionado para arrumar os links do carrossel
-import { useParams } from 'next/navigation'; // Para pegar o ID da URL
+import { useParams } from 'next/navigation'; // Para pegar o slug da URL
 
 // Variantes de animação
 const fadeInUp = {
@@ -21,11 +21,9 @@ const staggerContainer = {
     }
 };
 
-const CATEGORIES = ["Todos", "Insights", "Strategy", "Funding"];
-
 export default function BlogPostClient() {
-    const params = useParams(); // Pega o ID da URL
-    const postId = params.id;
+    const params = useParams(); // Pega o slug da URL
+    const postSlug = params.slug as string;
 
     // Estados para os dados reais
     const [article, setArticle] = useState<any>(null);
@@ -44,9 +42,9 @@ export default function BlogPostClient() {
     };
 
     const calculateReadTime = (html: string) => {
-        if (!html) return "1 min";
+        if (!html) return "1 min de leitura";
         const wordCount = html.replace(/<[^>]+>/g, '').trim().split(/\s+/).length;
-        return `${Math.ceil(wordCount / 200)} min`;
+        return `${Math.ceil(wordCount / 200)} min de leitura`;
     };
 
     useEffect(() => {
@@ -58,8 +56,8 @@ export default function BlogPostClient() {
                 const allPosts = await resAll.json();
 
                 if (allPosts && Array.isArray(allPosts)) {
-                    // 2. Encontra o post específico (o atual)
-                    const current = allPosts.find((p: any) => p.id.toString() === postId);
+                    // 2. Encontra o post específico (o atual) pelo slug (ou pelo id antigo, por segurança)
+                    const current = allPosts.find((p: any) => p.slug === postSlug || p.id.toString() === postSlug);
 
                     if (current) {
                         // Formata a data
@@ -69,7 +67,7 @@ export default function BlogPostClient() {
                     }
 
                     // 3. Filtra os outros posts (removendo o atual) para a lista de relacionados
-                    const others = allPosts.filter((p: any) => p.id.toString() !== postId);
+                    const others = allPosts.filter((p: any) => p !== current);
                     setRelatedArticles(others);
                 }
             } catch (error) {
@@ -79,10 +77,17 @@ export default function BlogPostClient() {
             }
         };
 
-        if (postId) {
+        if (postSlug) {
             fetchData();
         }
-    }, [postId]);
+    }, [postSlug]);
+
+    // Categorias reais, extraídas dos artigos carregados (em vez de uma lista fixa)
+    const categories = useMemo(() => {
+        const unique = new Set(relatedArticles.map((p) => p.category).filter(Boolean));
+        if (article?.category) unique.add(article.category);
+        return ["Todos", ...Array.from(unique)];
+    }, [relatedArticles, article]);
 
     // Lógica de Filtro e Pesquisa (Agora usando dados reais)
     const filteredArticles = relatedArticles.filter((post) => {
@@ -132,7 +137,7 @@ export default function BlogPostClient() {
                     <motion.div variants={fadeInUp} className="flex items-center justify-center gap-3 text-xs text-slate-500 uppercase tracking-widest mb-6 font-semibold">
                         <span>{article.category}</span>
                         <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
-                        <span>{calculateReadTime(article.content)} read</span>
+                        <span>{calculateReadTime(article.content)}</span>
                     </motion.div>
 
                     {/* @ts-ignore */}
@@ -254,7 +259,7 @@ export default function BlogPostClient() {
                             </div>
 
                             <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
-                                {CATEGORIES.map(category => (
+                                {categories.map(category => (
                                     <button
                                         key={category}
                                         onClick={() => setSelectedCategory(category)}
@@ -329,9 +334,9 @@ function DraggableCarousel({ articles }: { articles: any[] }) {
     };
 
     const calculateReadTime = (html: string) => {
-        if (!html) return "1 min";
+        if (!html) return "1 min de leitura";
         const wordCount = html.replace(/<[^>]+>/g, '').trim().split(/\s+/).length;
-        return `${Math.ceil(wordCount / 200)} min`;
+        return `${Math.ceil(wordCount / 200)} min de leitura`;
     };
 
     useEffect(() => {
@@ -360,7 +365,7 @@ function DraggableCarousel({ articles }: { articles: any[] }) {
             >
                 {articles.map((post) => (
                     // ADICIONADO: Link para o carrossel funcionar
-                    <Link href={`/blog/${post.id}`} key={post.id} className="pointer-events-auto">
+                    <Link href={`/blog/${post.slug || post.id}`} key={post.id} className="pointer-events-auto">
                         <motion.article
                             //@ts-ignore
                             variants={fadeInUp}
@@ -378,7 +383,7 @@ function DraggableCarousel({ articles }: { articles: any[] }) {
                                 <div className="flex items-center gap-2 text-[10px] md:text-xs text-slate-500 uppercase tracking-widest mb-2 font-semibold">
                                     <span>{post.category}</span>
                                     <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                                    <span>{calculateReadTime(post.content)} read</span>
+                                    <span>{calculateReadTime(post.content)}</span>
                                 </div>
 
                                 <h3 className="text-lg font-bold text-slate-900 leading-snug mb-2 group-hover:text-amber-600 transition-colors line-clamp-2">

@@ -8,6 +8,7 @@ import { staggerContainer, fadeInUp } from '@/lib/animations';
 // Interface para tipar os dados que vêm da sua API
 interface Post {
     id: number;
+    slug: string | null;
     title: string;
     category: string;
     content: string;
@@ -53,11 +54,11 @@ export default function BlogSection() {
 
     // Função para calcular tempo de leitura (baseado na média de 200 palavras por minuto)
     const calculateReadTime = (html: string) => {
-        if (!html) return "1 min";
+        if (!html) return "1 min de leitura";
         const plainText = html.replace(/<[^>]+>/g, '');
         const wordCount = plainText.trim().split(/\s+/).length;
         const minutes = Math.ceil(wordCount / 200);
-        return `${minutes} min`;
+        return `${minutes} min de leitura`;
     };
 
     // Sem artigos publicados: a seção inteira não é exibida no site
@@ -120,7 +121,7 @@ export default function BlogSection() {
                         className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-12"
                     >
                         {posts.map((post) => (
-                            <Link href={`/blog/${post.id}`} key={post.id} className="block group">
+                            <Link href={`/blog/${post.slug || post.id}`} key={post.id} className="block group">
                                 <motion.article variants={fadeInUp} className="cursor-pointer h-full flex flex-col">
 
                                     {/* Caixa da Imagem */}
@@ -137,7 +138,7 @@ export default function BlogSection() {
                                     <div className="flex items-center gap-3 text-[11px] md:text-xs text-[#9A9186] uppercase tracking-widest mb-3 font-bold">
                                         <span className="text-[#16243A]">{post.category}</span>
                                         <span className="w-1 h-1 bg-[#C7BFB3] rounded-full"></span>
-                                        <span>{calculateReadTime(post.content)} read</span>
+                                        <span>{calculateReadTime(post.content)}</span>
                                     </div>
 
                                     {/* Título */}

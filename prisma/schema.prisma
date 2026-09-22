@@ -26,6 +26,7 @@ model User {
 model Post {
   id        Int      @id @default(autoincrement())
   title     String
+  slug      String?  @unique // Usado na URL pública do artigo (ex: /blog/meu-artigo). Gerado a partir do título.
   content   String?
   category  String
   status    String   @default("Rascunho") // Publicado, Rascunho
