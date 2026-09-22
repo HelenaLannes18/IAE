@@ -206,7 +206,7 @@ export default function BlogPostPage() {
                     <div className="relative bg-[#0a0a0a] text-white overflow-hidden py-16 md:py-20 px-8 md:px-12 flex flex-col md:flex-row items-center justify-between gap-10 shadow-2xl rounded-sm">
                         <div className="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=1600')] bg-cover bg-center mix-blend-luminosity grayscale pointer-events-none"></div>
                         <h3 className="relative z-10 text-3xl md:text-4xl lg:text-[2.5rem] font-light tracking-wide md:max-w-xl text-center md:text-left leading-snug">
-                            Dê o próximo passo na estruturação do seu negócio hoje.
+                            Dê o próximo passo na estruturação do seu fututro profissional hoje.
                         </h3>
                         <div className="relative z-10 shrink-0">
                             <Link href="/#programas-executivos">

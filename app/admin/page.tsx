@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import RichTextEditor from '@/components/Richtexteditor';
+import ImageUrlInput from '@/components/admin/ImageUrlInput';
 
 
 export default function AdminBlogArea() {
@@ -809,12 +810,11 @@ export default function AdminBlogArea() {
                                                                     placeholder="Nome do novo autor"
                                                                     className="w-full px-3 py-2 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A]"
                                                                 />
-                                                                <input
-                                                                    type="text"
+                                                                <ImageUrlInput
                                                                     value={newAuthorImageUrl}
-                                                                    onChange={(e) => setNewAuthorImageUrl(e.target.value)}
+                                                                    onChange={setNewAuthorImageUrl}
                                                                     placeholder="Foto do autor (URL)"
-                                                                    className="w-full px-3 py-2 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A]"
+                                                                    inputClassName="flex-1 min-w-0 px-3 py-2 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-lg text-sm text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A]"
                                                                 />
                                                                 <div className="flex gap-2">
                                                                     <button
@@ -846,12 +846,9 @@ export default function AdminBlogArea() {
                                                     </div>
                                                     <div>
                                                         <label className="block text-sm font-bold text-[#3A3733] mb-2">Imagem de Capa (URL)</label>
-                                                        <input
-                                                            type="text"
+                                                        <ImageUrlInput
                                                             value={formData.imageUrl}
-                                                            onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                                                            placeholder="https://..."
-                                                            className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                            onChange={(url) => setFormData({ ...formData, imageUrl: url })}
                                                         />
                                                         {formData.imageUrl && (
                                                             <div className="mt-3 rounded-xl overflow-hidden border border-[#C7BFB3]/60 bg-white">
@@ -1008,12 +1005,9 @@ export default function AdminBlogArea() {
                                                             {userFormData.name ? userFormData.name.charAt(0).toUpperCase() : '?'}
                                                         </div>
                                                     )}
-                                                    <input
-                                                        type="text"
+                                                    <ImageUrlInput
                                                         value={userFormData.imageUrl}
-                                                        onChange={(e) => setUserFormData({ ...userFormData, imageUrl: e.target.value })}
-                                                        placeholder="https://..."
-                                                        className="flex-1 px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                        onChange={(url) => setUserFormData({ ...userFormData, imageUrl: url })}
                                                     />
                                                 </div>
                                             </div>
@@ -1263,12 +1257,9 @@ export default function AdminBlogArea() {
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-bold text-[#3A3733] mb-2">Imagem de Fundo (URL)</label>
-                                                <input
-                                                    type="text"
+                                                <ImageUrlInput
                                                     value={agendaFormData.image}
-                                                    onChange={(e) => setAgendaFormData({ ...agendaFormData, image: e.target.value })}
-                                                    placeholder="https://..."
-                                                    className="w-full px-4 py-3 bg-[#F3F1EC]/50 border border-[#C7BFB3] rounded-xl text-[#3A3733] focus:outline-none focus:ring-2 focus:ring-[#16243A]/20 focus:border-[#16243A] transition-all"
+                                                    onChange={(url) => setAgendaFormData({ ...agendaFormData, image: url })}
                                                 />
                                                 {agendaFormData.image && (
                                                     <div className="mt-3 rounded-xl overflow-hidden border border-[#C7BFB3]/60 bg-white">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -38,6 +38,9 @@ function ToolbarButton({
 }
 
 export default function RichTextEditor({ content, onChange, placeholder }: RichTextEditorProps) {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
+
     const editor = useEditor({
         extensions: [
             StarterKit,
@@ -65,10 +68,34 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
         }
     });
 
-    const addImage = useCallback(() => {
+    const addImageFromUrl = useCallback(() => {
         const url = window.prompt('Cole a URL da imagem:');
         if (url && editor) {
             editor.chain().focus().setImage({ src: url }).run();
+        }
+    }, [editor]);
+
+    const addImageFromComputer = useCallback(() => {
+        fileInputRef.current?.click();
+    }, []);
+
+    const handleImageFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file || !editor) return;
+
+        setIsUploadingImage(true);
+        try {
+            const body = new FormData();
+            body.append('file', file);
+            const res = await fetch('/api/upload', { method: 'POST', body });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Falha ao enviar imagem.');
+            editor.chain().focus().setImage({ src: data.url }).run();
+        } catch (error) {
+            alert(error instanceof Error ? error.message : 'Erro ao enviar imagem.');
+        } finally {
+            setIsUploadingImage(false);
         }
     }, [editor]);
 
@@ -131,9 +158,19 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
                 <ToolbarButton onClick={setLink} isActive={editor.isActive('link')} title="Link">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.5 1.5" /></svg>
                 </ToolbarButton>
-                <ToolbarButton onClick={addImage} title="Inserir imagem">
+                <ToolbarButton onClick={addImageFromUrl} title="Inserir imagem (URL)">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 </ToolbarButton>
+                <ToolbarButton onClick={addImageFromComputer} title={isUploadingImage ? 'Enviando imagem...' : 'Inserir imagem do computador'}>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v10a2 2 0 002 2h12a2 2 0 002-2V8l-5-4H6a2 2 0 00-2 2z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v6m0-6l-2.5 2.5M12 11l2.5 2.5" /></svg>
+                </ToolbarButton>
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                    className="hidden"
+                    onChange={handleImageFileChange}
+                />
 
                 <div className="w-px bg-[#C7BFB3]/60 mx-1" />
 
