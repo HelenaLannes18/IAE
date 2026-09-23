@@ -179,11 +179,6 @@ const gestaoDepartamentoJuridico: Programa = {
             imagem: "/guga.JPG",
         },
         {
-            nome: "Rodrigo Gadben",
-            credencial: "Coordenador acadêmico do IAE. Doutor em regulação pela FGV.",
-            imagem: "/rodrigo.jpg",
-        },
-        {
             nome: "Daniela Vilhena",
             credencial:
                 "Sócia do Castro Barros Advogados e Conselheira Consultiva da Junior Achievement RJ. Tem sólida trajetória em grandes escritórios de advocacia e como diretora jurídica e de compliance de empresas em setores altamente regulados. No cenário internacional, foi consultora jurídica do Banco Interamericano de Desenvolvimento (BID), em Washington, D.C. Reúne experiência em gestão de riscos, liderança de equipes em transformação e relacionamento com Conselhos de Administração e investidores.",
