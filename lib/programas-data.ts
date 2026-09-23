@@ -50,6 +50,8 @@ export interface Programa {
     /** false = não deve ser roteado/publicado ainda (ver nota no próprio objeto) */
     publicavel: boolean;
     status: ProgramaStatus;
+    /** ISO (YYYY-MM-DD). Só preencher quando a data de início da turma estiver confirmada. */
+    dataInicioISO?: string;
     seo: {
         titleTag: string;
         metaDescription: string;
@@ -83,7 +85,8 @@ const gestaoDepartamentoJuridico: Programa = {
     slug: "gestao-do-departamento-juridico",
     numero: 1,
     publicavel: true,
-    status: "lista-de-espera",
+    status: "confirmado",
+    dataInicioISO: "2026-10-07",
     seo: {
         titleTag: "Curso de Gestão do Departamento Jurídico | IAE Rio de Janeiro",
         metaDescription:
@@ -191,9 +194,9 @@ const gestaoDepartamentoJuridico: Programa = {
         { label: "Carga horária", valor: "24 horas — 8 encontros de 3 horas" },
         { label: "Formato", valor: "Presencial" },
         { label: "Local", valor: "Instituto de Advocacia Empresarial — Rua São José, 40, Centro, Rio de Janeiro/RJ" },
-        { label: "Dia", valor: "Quintas-feiras" },
+        { label: "Dia", valor: "Quartas-feiras" },
         { label: "Horário", valor: "18h30 às 21h30" },
-        { label: "Início", valor: "Outubro de 2026" },
+        { label: "Início", valor: "7 de outubro de 2026" },
         { label: "Certificado", valor: "Certificado de programa executivo emitido pelo IAE" },
         { label: "Vagas", valor: "Turma reduzida" },
     ],
@@ -241,7 +244,7 @@ const gestaoDepartamentoJuridico: Programa = {
         },
         {
             pergunta: "Qual é o horário?",
-            resposta: "Quintas-feiras, das 18h30 às 21h30, ao longo de oito semanas.",
+            resposta: "Quartas-feiras, das 18h30 às 21h30, ao longo de oito semanas.",
         },
         {
             pergunta: "Há material didático?",
@@ -420,17 +423,18 @@ const direitoRegulatorio: Programa = {
 };
 
 // ---------------------------------------------------------------
-// 3. Direito Tributário (turma não confirmada → lista de espera)
+// 3. Direito Tributário (turma confirmada)
 // ---------------------------------------------------------------
 const direitoTributario: Programa = {
     slug: "direito-tributario",
     numero: 3,
     publicavel: true,
-    status: "lista-de-espera",
+    status: "confirmado",
+    dataInicioISO: "2026-10-05",
     seo: {
         titleTag: "Curso de Direito Tributário Empresarial | IAE Rio de Janeiro",
         metaDescription:
-            "Programa executivo em direito tributário para advogados de empresa: reforma do consumo, risco fiscal e governança tributária. Entre na lista de espera do IAE.",
+            "Programa executivo em direito tributário para advogados de empresa: reforma do consumo, risco fiscal e governança tributária. Inscrições abertas no IAE.",
         keywordPrincipal: "curso de direito tributário empresarial",
         secundarias: [
             "direito tributário para advogado in-house",
@@ -447,7 +451,7 @@ const direitoTributario: Programa = {
     },
     h1: "Direito Tributário",
     posicionamento: "Um programa executivo para advogados que tratam a tributação como variável de decisão empresarial.",
-    ctaPrimario: "Entrar na lista de espera",
+    ctaPrimario: "Quero minha vaga",
     sobre: [
         "A carga tributária influencia preços, margens, investimentos e decisões estratégicas em praticamente todos os setores da economia. Decisões tributárias moldam mercados, redirecionam investimentos e redefinem estruturas empresariais.",
         "Compreender a lógica empresarial da tributação vai além da interpretação da norma fiscal: envolve entender como decisões tributárias moldam estruturas de custo, influenciam a competitividade e condicionam a viabilidade econômica dos negócios.",
@@ -524,11 +528,13 @@ const direitoTributario: Programa = {
         { label: "Carga horária", valor: "24 horas — 8 encontros de 3 horas" },
         { label: "Formato", valor: "Presencial" },
         { label: "Local", valor: "Instituto de Advocacia Empresarial — Rua São José, 40, Centro, Rio de Janeiro/RJ" },
-        { label: "Próxima turma", valor: "A definir" },
+        { label: "Dia", valor: "Segundas-feiras" },
+        { label: "Horário", valor: "18h30 às 21h30" },
+        { label: "Início", valor: "5 de outubro de 2026" },
         { label: "Certificado", valor: "Certificado de programa executivo emitido pelo IAE" },
     ],
     blocoCaptura:
-        "Entre na lista de espera e receba em primeira mão a data de abertura da próxima turma e as condições do primeiro lote.",
+        "Turma confirmada: segundas-feiras, das 18h30 às 21h30, com início em 5 de outubro de 2026. Garanta sua vaga e as condições do primeiro lote.",
     diferenciais: [
         {
             titulo: "Compreensão estrutural.",
@@ -554,7 +560,7 @@ const direitoTributario: Programa = {
     faq: [
         {
             pergunta: "Quando abre a próxima turma?",
-            resposta: "A data será anunciada em primeira mão para quem estiver na lista de espera.",
+            resposta: "A turma está confirmada: segundas-feiras, das 18h30 às 21h30, com início em 5 de outubro de 2026.",
         },
         {
             pergunta: "O programa cobre a reforma tributária?",

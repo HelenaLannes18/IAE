@@ -59,7 +59,7 @@ function buildJsonLd(programa: Programa) {
                 },
             },
             ...(programa.status === "confirmado"
-                ? { startDate: "2026-10-01" }
+                ? { startDate: programa.dataInicioISO ?? "2026-10-01" }
                 : {}),
         },
     };
